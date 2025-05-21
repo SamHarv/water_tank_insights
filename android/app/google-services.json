@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "283628213208",
+    "project_id": "water-tank-insights",
+    "storage_bucket": "water-tank-insights.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:283628213208:android:71ff20a18ca93f67cc58ad",
+        "android_client_info": {
+          "package_name": "com.o2tech.water_tank_insights"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAxdKnbfHb19wna46Y2hfPF9iAh-LahSdY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

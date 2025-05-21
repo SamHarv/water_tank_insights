@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>API_KEY</key>
+	<string>AIzaSyCSmFWY3itaH-wQWDRBWwgNyJRnNYlUrs8</string>
+	<key>GCM_SENDER_ID</key>
+	<string>283628213208</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.o2tech.waterTankInsights</string>
+	<key>PROJECT_ID</key>
+	<string>water-tank-insights</string>
+	<key>STORAGE_BUCKET</key>
+	<string>water-tank-insights.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:283628213208:ios:1e88c52516d8678fcc58ad</string>
+</dict>
+</plist>
