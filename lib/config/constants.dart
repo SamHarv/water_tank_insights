@@ -50,9 +50,3 @@ const kShadow = BoxShadow(
   offset: Offset(4, 4),
   blurStyle: BlurStyle.solid,
 );
-
-// App bar for tool views to allow back navigation
-final kAppBar = AppBar(
-  backgroundColor: Colors.transparent,
-  automaticallyImplyLeading: true,
-);

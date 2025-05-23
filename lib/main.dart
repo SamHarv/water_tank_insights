@@ -6,6 +6,9 @@ import 'config/constants.dart';
 import 'ui/views/home_view.dart';
 
 //TODO: download csv/ presist data locally?
+// Security - store on disk
+
+// flutter run -d chrome --web-experimental-hot-reload
 
 void main() {
   runApp(const WaterTankInsights());
@@ -17,6 +20,7 @@ class WaterTankInsights extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Water Tank Insights',
       theme: ThemeData(
         fontFamily: GoogleFonts.openSans().fontFamily,

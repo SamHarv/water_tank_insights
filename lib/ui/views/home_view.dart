@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../config/constants.dart';
+import 'disclaimer_view.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -90,6 +91,12 @@ class _HomeViewState extends State<HomeView> {
                             isPressed = false;
                           });
                         });
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const DisclaimerView(),
+                          ),
+                        );
                       },
                       child: AnimatedContainer(
                         width: mediaWidth * 0.8,
