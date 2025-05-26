@@ -149,6 +149,7 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                                   (value) => setState(() {
                                     try {
                                       numOfTanks = int.parse(value);
+                                      if (numOfTanks > 20) throw RangeError("");
                                     } catch (e) {
                                       showAlertDialog(
                                         "Please enter a number between 1 and 20",
@@ -220,7 +221,7 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                                       label: "Tank capacity (L)",
                                       onChanged:
                                           (value) => setState(() {
-                                            tankCapacityController.text = value;
+                                            // tankCapacityController.text = value;
                                             try {
                                               tank.capacity = int.parse(value);
                                             } catch (e) {
@@ -275,8 +276,8 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                                       label: "Tank level (L)",
                                       onChanged:
                                           (value) => setState(() {
-                                            tankWaterLevelController.text =
-                                                value;
+                                            // tankWaterLevelController.text =
+                                            //     value;
                                             try {
                                               tank.waterLevel = int.parse(
                                                 value,
@@ -361,8 +362,8 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                                                   label: "Length (m)",
                                                   onChanged:
                                                       (value) => setState(() {
-                                                        tankLengthController
-                                                            .text = value;
+                                                        // tankLengthController
+                                                        //     .text = value;
                                                         try {
                                                           tank.length =
                                                               double.parse(
@@ -383,8 +384,8 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                                                   label: "Width (m)",
                                                   onChanged:
                                                       (value) => setState(() {
-                                                        tankWidthController
-                                                            .text = value;
+                                                        // tankWidthController
+                                                        //     .text = value;
                                                         try {
                                                           tank.width =
                                                               double.parse(
@@ -419,8 +420,8 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                                                   label: "Diameter (m)",
                                                   onChanged:
                                                       (value) => setState(() {
-                                                        tankDiameterController
-                                                            .text = value;
+                                                        // tankDiameterController
+                                                        //     .text = value;
                                                         try {
                                                           tank.diameter =
                                                               double.parse(
@@ -448,8 +449,8 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                                           label: "Height (m)",
                                           onChanged:
                                               (value) => setState(() {
-                                                tankHeightController.text =
-                                                    value;
+                                                // tankHeightController.text =
+                                                //     value;
                                                 try {
                                                   tank.height = double.parse(
                                                     value,
@@ -483,8 +484,8 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                                           label: "Water Level (m)",
                                           onChanged:
                                               (value) => setState(() {
-                                                waterHeightController.text =
-                                                    value;
+                                                // waterHeightController.text =
+                                                //     value;
                                                 try {
                                                   tank.waterHeight =
                                                       double.parse(value);
@@ -552,10 +553,6 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                                                 tank.diameter,
                                                 tank.waterHeight,
                                               );
-                                      print(tank.height);
-                                      print(tank.waterHeight);
-                                      print(tank.capacity);
-                                      print(tank.waterLevel);
                                       setState(() {
                                         tankCapacity = tank.capacity;
                                         tankWaterLevel = tank.waterLevel;
