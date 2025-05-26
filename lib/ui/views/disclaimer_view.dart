@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../config/constants.dart';
+import 'location_view.dart';
 
 class DisclaimerView extends StatefulWidget {
   const DisclaimerView({super.key});
@@ -104,6 +105,13 @@ class _DisclaimerViewState extends State<DisclaimerView> {
                           setState(() {
                             isPressed = false;
                           });
+                          Navigator.push(
+                            // ignore: use_build_context_synchronously
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const LocationView(),
+                            ),
+                          );
                         });
                       },
                       child: AnimatedContainer(

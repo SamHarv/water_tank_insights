@@ -25,6 +25,26 @@ const inputFieldStyle = TextStyle(
   fontWeight: FontWeight.bold,
 );
 
+// Style for segmented buttons
+final segButtonStyle = ButtonStyle(
+  backgroundColor: WidgetStateProperty.resolveWith<Color>((
+    Set<WidgetState> states,
+  ) {
+    if (states.contains(WidgetState.selected)) {
+      return white;
+    }
+    return Colors.grey[400]!;
+  }),
+  elevation: WidgetStateProperty.all(8),
+  side: WidgetStateProperty.all(kBorderSide),
+  shape: WidgetStateProperty.all(
+    RoundedRectangleBorder(borderRadius: kBorderRadius, side: kBorderSide),
+  ),
+  textStyle: WidgetStateProperty.all(
+    TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.bold),
+  ),
+);
+
 // Style for output values for dialog
 const outputValueStyle = TextStyle(fontSize: 16, fontWeight: FontWeight.bold);
 
