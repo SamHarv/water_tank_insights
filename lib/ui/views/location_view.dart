@@ -76,7 +76,7 @@ class _LocationViewState extends State<LocationView> {
                       label: Text("Postcode"),
                       menuStyle: MenuStyle(
                         maximumSize: WidgetStateProperty.all(
-                          Size.fromWidth(mediaWidth),
+                          Size.fromWidth(500),
                         ),
                         backgroundColor: WidgetStateProperty.all(white),
                         elevation: WidgetStateProperty.all(8),

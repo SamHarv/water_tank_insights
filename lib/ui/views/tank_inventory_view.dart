@@ -115,12 +115,129 @@ class _TankInventoryViewState extends State<TankInventoryView> {
       body: Center(
         child:
             showResults
-                ? Padding(
-                  padding: kPadding,
-                  child: Text(
-                    "Your tank capacity is $tankCapacity liters.\n\n"
-                    "Your tank water level is $tankWaterLevel liters.",
-                  ),
+                ? Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  spacing: 32,
+                  children: [
+                    ConstrainedWidthWidget(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: white,
+                          border: Border.all(color: black, width: 3),
+                          borderRadius: kBorderRadius,
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Center(
+                            child: Text(
+                              "Your tank capacity is $tankCapacity litres.\n\n"
+                              "Your current inventory is $tankWaterLevel litres.",
+                              style: headingStyle,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: 500),
+                      child: SizedBox(
+                        width: mediaWidth * 0.8,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.max,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          spacing: 32,
+                          children: [
+                            Tooltip(
+                              message: "Back to tank volume calculator",
+                              child: InkWell(
+                                borderRadius: kBorderRadius,
+                                onTap: () {
+                                  // Handle button press animation
+                                  setState(() {
+                                    isPressed = true;
+                                  });
+                                  Future.delayed(
+                                    const Duration(milliseconds: 150),
+                                  ).then((value) {
+                                    setState(() {
+                                      isPressed = false;
+                                    });
+                                  });
+
+                                  setState(() {
+                                    showResults = false;
+                                  });
+                                },
+                                child: AnimatedContainer(
+                                  // width: mediaWidth * 0.8,
+                                  duration: const Duration(milliseconds: 100),
+                                  decoration: BoxDecoration(
+                                    color: white,
+                                    border: Border.all(color: black, width: 3),
+                                    borderRadius: kBorderRadius,
+                                    boxShadow: [
+                                      isPressed ? BoxShadow() : kShadow,
+                                    ],
+                                  ),
+                                  child: Padding(
+                                    padding: EdgeInsets.all(16),
+                                    child: Center(
+                                      child: Text(
+                                        "Back",
+                                        style: subHeadingStyle,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Tooltip(
+                              message: "Continue to next step",
+                              child: InkWell(
+                                borderRadius: kBorderRadius,
+                                onTap: () {
+                                  // Handle button press animation
+                                  setState(() {
+                                    isPressed = true;
+                                  });
+                                  Future.delayed(
+                                    const Duration(milliseconds: 150),
+                                  ).then((value) {
+                                    setState(() {
+                                      isPressed = false;
+                                    });
+                                  });
+
+                                  // TODO: Navigate to next step
+                                },
+                                child: AnimatedContainer(
+                                  // width: mediaWidth * 0.8,
+                                  duration: const Duration(milliseconds: 100),
+                                  decoration: BoxDecoration(
+                                    color: white,
+                                    border: Border.all(color: black, width: 3),
+                                    borderRadius: kBorderRadius,
+                                    boxShadow: [
+                                      isPressed ? BoxShadow() : kShadow,
+                                    ],
+                                  ),
+                                  child: Padding(
+                                    padding: EdgeInsets.all(16),
+                                    child: Center(
+                                      child: Text(
+                                        "Continue",
+                                        style: subHeadingStyle,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 )
                 : SingleChildScrollView(
                   child: Padding(
@@ -537,6 +654,11 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                                                 tank.diameter,
                                                 tank.height,
                                               );
+                                      if (tank.waterHeight > tank.height) {
+                                        return showAlertDialog(
+                                          "Water level cannot be higher than tank height",
+                                        );
+                                      }
 
                                       // Calculate tank inventory
                                       tank.isRectangular
