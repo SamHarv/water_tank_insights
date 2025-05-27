@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:water_tank_insights/ui/views/tank_inventory_view.dart';
+import 'package:water_tank_insights/ui/widgets/constrained_width_widget.dart';
 
 import '../../config/constants.dart';
 
@@ -15,9 +17,45 @@ class _LocationViewState extends State<LocationView> {
   bool isPressed = false;
   double yearSelected = DateTime.now().year.toDouble();
   String timePeriod = "Monthly";
+  String? selectedPostcode;
+
+  // SharedPreferences keys
+  static const String _postcodeKey = 'selected_postcode';
+  static const String _yearKey = 'selected_year';
+  static const String _timePeriodKey = 'selected_time_period';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedData();
+  }
+
+  // Load saved location data
+  Future<void> _loadSavedData() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    setState(() {
+      selectedPostcode = prefs.getString(_postcodeKey);
+      yearSelected =
+          prefs.getDouble(_yearKey) ?? DateTime.now().year.toDouble();
+      timePeriod = prefs.getString(_timePeriodKey) ?? "Monthly";
+    });
+  }
+
+  // Save location data
+  Future<void> _saveData() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    if (selectedPostcode != null) {
+      await prefs.setString(_postcodeKey, selectedPostcode!);
+    }
+    await prefs.setDouble(_yearKey, yearSelected);
+    await prefs.setString(_timePeriodKey, timePeriod);
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Width of screen
     final mediaWidth = MediaQuery.sizeOf(context).width;
     return Scaffold(
       appBar: AppBar(
@@ -31,7 +69,7 @@ class _LocationViewState extends State<LocationView> {
             child: Icon(Icons.arrow_back_ios_new),
           ),
           color: white,
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.pop(context), // Back to prev view
         ),
         actions: [
           Hero(
@@ -50,28 +88,30 @@ class _LocationViewState extends State<LocationView> {
               spacing: 32,
               children: [
                 // Enter your location
-                ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: 500),
-                  child: SizedBox(
-                    width: mediaWidth * 0.8,
-                    child: Text("Enter your location:", style: inputFieldStyle),
-                  ),
+                ConstrainedWidthWidget(
+                  child: Text("Enter your location:", style: inputFieldStyle),
                 ),
                 // Postcode dropdown
                 Tooltip(
                   message: "Enter your postcode.",
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(maxWidth: 500),
-                    child: DropdownMenu(
+                  child: ConstrainedWidthWidget(
+                    child: DropdownMenu<String>(
                       width: mediaWidth * 0.8,
+                      initialSelection: selectedPostcode,
                       dropdownMenuEntries: [
-                        // Potentially use enum for postcodes
-                        // DropdownMenuEntry(
-                        //   value: InvestmentFrequency.none,
-                        //   label: "None",
-                        // ),
-                        DropdownMenuEntry(value: "None", label: "None"),
-                        DropdownMenuEntry(value: "0000", label: "0000"),
+                        // TODO: update postcodes
+                        DropdownMenuEntry(
+                          value: "0000",
+                          label: "0000 - Sample Area",
+                        ),
+                        DropdownMenuEntry(
+                          value: "3000",
+                          label: "3000 - Melbourne CBD",
+                        ),
+                        DropdownMenuEntry(
+                          value: "5000",
+                          label: "5000 - Adelaide CBD",
+                        ),
                       ],
                       label: Text("Postcode"),
                       menuStyle: MenuStyle(
@@ -97,65 +137,54 @@ class _LocationViewState extends State<LocationView> {
                       ),
                       textStyle: inputFieldStyle,
                       enableFilter: true,
-                      hintText: "Postcode",
-                      onSelected: (year) {
-                        // Example onSelected logic
-                        // Enable/ disable recurring investment field based on frequency
-                        // frequency == InvestmentFrequency.none
-                        //     ? setState(() {
-                        //         recurringInvestmentEnabled = false;
-                        //         recurringInvestmentController.clear();
-                        //       })
-                        //     : setState(() {
-                        //         recurringInvestmentEnabled = true;
-                        //       });
-                        // setState(() {
-                        //   investmentFrequency = frequency!;
-                        // });
+                      hintText: "Select postcode",
+                      onSelected: (postcode) {
+                        setState(() {
+                          selectedPostcode = postcode;
+                        });
+                        _saveData(); // Auto-save when postcode changes
                       },
                     ),
                   ),
                 ),
-                // Year slider
-                ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: 500),
-                  child: SizedBox(
-                    width: mediaWidth * 0.8,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text("Year", style: inputFieldStyle),
-                        SizedBox(width: 32),
-                        Text(
-                          yearSelected.toInt().toString(),
-                          style: headingStyle,
+                // Year selection slider
+                ConstrainedWidthWidget(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text("Year", style: inputFieldStyle),
+                      SizedBox(width: 32),
+                      Text(
+                        yearSelected.toInt().toString(),
+                        style: headingStyle,
+                      ),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Slider(
+                          value: yearSelected,
+                          activeColor: black,
+                          secondaryActiveColor: white,
+                          thumbColor: white,
+                          // TODO: double check 1890 is earliest year
+                          min: 1890,
+                          // Default to current year
+                          max: DateTime.now().year.toDouble(),
+                          onChanged: (value) {
+                            setState(() {
+                              yearSelected = value;
+                            });
+                          },
+                          onChangeEnd: (value) {
+                            _saveData(); // Save when slider stops moving
+                          },
                         ),
-                        SizedBox(width: 8),
-                        Expanded(
-                          child: Slider(
-                            value: yearSelected,
-                            activeColor: black,
-                            secondaryActiveColor: white,
-                            thumbColor: white,
-                            min: 1890,
-                            max: DateTime.now().year.toDouble(),
-                            onChanged: (value) {
-                              setState(() {
-                                yearSelected = value;
-                              });
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
-
-                // TODO: Bar chart indicating rainfall in location for given period
-                ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: 500),
+                // Chart to visualise rainfall
+                ConstrainedWidthWidget(
                   child: Container(
-                    width: mediaWidth * 0.8,
                     decoration: BoxDecoration(
                       color: white,
                       border: Border.all(color: black, width: 3),
@@ -163,11 +192,20 @@ class _LocationViewState extends State<LocationView> {
                     ),
                     child: Padding(
                       padding: EdgeInsets.all(16),
-                      child: Center(child: Placeholder(fallbackHeight: 200)),
+                      child: Center(
+                        child: Column(
+                          spacing: 16,
+                          children: [
+                            Text("Rainfall Data", style: subHeadingStyle),
+                            // TODO: Bar chart indicating rainfall in location for given period
+                            Placeholder(fallbackHeight: 150),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ),
-                // Segmented button for monthly/ annual
+                // Segmented button for monthly/ annual rainfall filter for chart
                 ConstrainedBox(
                   constraints: BoxConstraints(maxWidth: 500),
                   child: SizedBox(
@@ -196,6 +234,7 @@ class _LocationViewState extends State<LocationView> {
                         setState(() {
                           timePeriod = newSelection.first;
                         });
+                        _saveData(); // Auto-save when time period changes
                       },
                     ),
                   ),
@@ -219,7 +258,11 @@ class _LocationViewState extends State<LocationView> {
                             isPressed = false;
                           });
                         });
-                        // TODO: Navigate to next step
+
+                        // Save data before navigating
+                        _saveData();
+
+                        // Navigate to tank inventory calculator
                         Navigator.push(
                           context,
                           MaterialPageRoute(
