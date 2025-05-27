@@ -18,24 +18,26 @@ class _DisclaimerViewState extends State<DisclaimerView> {
     final mediaWidth = MediaQuery.sizeOf(context).width;
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: 120,
+        toolbarHeight: 80,
         backgroundColor: Colors.transparent,
         automaticallyImplyLeading: true,
-        leadingWidth: 120,
+        leadingWidth: 80,
         leading: IconButton(
           icon: Padding(
-            padding: kPadding,
+            padding: EdgeInsets.fromLTRB(24, 12, 32, 12),
             child: Icon(Icons.arrow_back_ios_new),
           ),
           color: white,
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.pop(context), // Back to prev view
         ),
         actions: [
           Hero(
             tag: "logo",
-            child: Padding(padding: kPadding, child: Image.asset(logo)),
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(0, 12, 48, 12),
+              child: Image.asset(logo),
+            ),
           ),
-          SizedBox(width: 16),
         ],
       ),
       body: Center(

@@ -7,6 +7,7 @@ import 'ui/views/home_view.dart';
 
 //TODO: download csv/ presist data locally?
 // Security - store on disk
+// Change name to AquaBalance
 
 // flutter run -d chrome --web-experimental-hot-reload
 

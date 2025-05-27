@@ -118,7 +118,7 @@ class _TankInventoryViewState extends State<TankInventoryView> {
       });
     } catch (e) {
       // If there's an error loading data, initialise with defaults
-      print('Error loading saved data: $e');
+      showAlertDialog("Error loading saved data: $e");
       _initialiseTanks();
       setState(() {
         isLoading = false;
@@ -336,7 +336,7 @@ class _TankInventoryViewState extends State<TankInventoryView> {
     // Calculator instance
     final tankVolumeCalculator = TankVolumeCalculator();
 
-    // Initialize variables
+    // Initialise variables
     double totalCapacity = 0;
     double totalInventory = 0;
     List<String> tankResults = [];
@@ -479,24 +479,26 @@ class _TankInventoryViewState extends State<TankInventoryView> {
     if (isLoading) {
       return Scaffold(
         appBar: AppBar(
-          toolbarHeight: 120,
+          toolbarHeight: 80,
           backgroundColor: Colors.transparent,
           automaticallyImplyLeading: true,
-          leadingWidth: 120,
+          leadingWidth: 80,
           leading: IconButton(
             icon: Padding(
-              padding: kPadding,
+              padding: EdgeInsets.fromLTRB(24, 12, 32, 12),
               child: Icon(Icons.arrow_back_ios_new),
             ),
             color: white,
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(context), // Back to prev view
           ),
           actions: [
             Hero(
               tag: "logo",
-              child: Padding(padding: kPadding, child: Image.asset(logo)),
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(0, 12, 48, 12),
+                child: Image.asset(logo),
+              ),
             ),
-            SizedBox(width: 16),
           ],
         ),
         body: Center(child: CircularProgressIndicator(color: white)),
@@ -505,24 +507,26 @@ class _TankInventoryViewState extends State<TankInventoryView> {
 
     return Scaffold(
       appBar: AppBar(
-        toolbarHeight: 120,
+        toolbarHeight: 80,
         backgroundColor: Colors.transparent,
         automaticallyImplyLeading: true,
-        leadingWidth: 120,
+        leadingWidth: 80,
         leading: IconButton(
           icon: Padding(
-            padding: kPadding,
+            padding: EdgeInsets.fromLTRB(24, 12, 32, 12),
             child: Icon(Icons.arrow_back_ios_new),
           ),
           color: white,
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => Navigator.pop(context), // Back to prev view
         ),
         actions: [
           Hero(
             tag: "logo",
-            child: Padding(padding: kPadding, child: Image.asset(logo)),
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(0, 12, 48, 12),
+              child: Image.asset(logo),
+            ),
           ),
-          SizedBox(width: 16),
         ],
       ),
       body: Center(
@@ -655,35 +659,37 @@ class _TankInventoryViewState extends State<TankInventoryView> {
 
               // Do you know the tank's capacity?
               Text("Do you know the tank's capacity?", style: inputFieldStyle),
-              SegmentedButton(
-                selectedIcon: Icon(Icons.check, color: black),
-                style: segButtonStyle,
-                segments: [
-                  ButtonSegment(
-                    value: true,
-                    label: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Text("Yes"),
+              ConstrainedWidthWidget(
+                child: SegmentedButton(
+                  selectedIcon: Icon(Icons.check, color: black),
+                  style: segButtonStyle,
+                  segments: [
+                    ButtonSegment(
+                      value: true,
+                      label: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Text("Yes"),
+                      ),
                     ),
-                  ),
-                  ButtonSegment(
-                    value: false,
-                    label: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Text("No"),
+                    ButtonSegment(
+                      value: false,
+                      label: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Text("No"),
+                      ),
                     ),
-                  ),
-                ],
-                // Set selected segment based on data
-                selected: {states['knowTankCapacity']!},
-                onSelectionChanged: (Set<bool> newSelection) {
-                  // Update data
-                  setState(() {
-                    tankStates[tankIndex]['knowTankCapacity'] =
-                        newSelection.first;
-                  });
-                  _saveData();
-                },
+                  ],
+                  // Set selected segment based on data
+                  selected: {states['knowTankCapacity']!},
+                  onSelectionChanged: (Set<bool> newSelection) {
+                    // Update data
+                    setState(() {
+                      tankStates[tankIndex]['knowTankCapacity'] =
+                          newSelection.first;
+                    });
+                    _saveData();
+                  },
+                ),
               ),
 
               // Tank capacity input (if known)
@@ -703,35 +709,37 @@ class _TankInventoryViewState extends State<TankInventoryView> {
 
               // Do you know how full the tank is?
               Text("Do you know how full the tank is?", style: inputFieldStyle),
-              SegmentedButton(
-                selectedIcon: Icon(Icons.check, color: black),
-                style: segButtonStyle,
-                segments: [
-                  ButtonSegment(
-                    value: true,
-                    label: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Text("Yes"),
+              ConstrainedWidthWidget(
+                child: SegmentedButton(
+                  selectedIcon: Icon(Icons.check, color: black),
+                  style: segButtonStyle,
+                  segments: [
+                    ButtonSegment(
+                      value: true,
+                      label: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Text("Yes"),
+                      ),
                     ),
-                  ),
-                  ButtonSegment(
-                    value: false,
-                    label: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Text("No"),
+                    ButtonSegment(
+                      value: false,
+                      label: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Text("No"),
+                      ),
                     ),
-                  ),
-                ],
-                // Set selected segment based on data
-                selected: {states['knowTankWaterLevel']!},
-                onSelectionChanged: (Set<bool> newSelection) {
-                  // Update data
-                  setState(() {
-                    tankStates[tankIndex]['knowTankWaterLevel'] =
-                        newSelection.first;
-                  });
-                  _saveData();
-                },
+                  ],
+                  // Set selected segment based on data
+                  selected: {states['knowTankWaterLevel']!},
+                  onSelectionChanged: (Set<bool> newSelection) {
+                    // Update data
+                    setState(() {
+                      tankStates[tankIndex]['knowTankWaterLevel'] =
+                          newSelection.first;
+                    });
+                    _saveData();
+                  },
+                ),
               ),
 
               // Tank water level input (if known)
@@ -742,6 +750,15 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                   onChanged: (value) {
                     try {
                       tanks[tankIndex].waterLevel = int.tryParse(value) ?? 0;
+                      if (tanks[tankIndex].waterLevel >
+                          tanks[tankIndex].capacity) {
+                        showAlertDialog(
+                          "Tank level cannot be greater than capacity",
+                        );
+                        tanks[tankIndex].waterLevel = tanks[tankIndex].capacity;
+                        controllers['waterLevel']!.text =
+                            tanks[tankIndex].waterLevel.toString();
+                      }
                     } catch (e) {
                       showAlertDialog("Please enter a number (litres)");
                     }
@@ -755,34 +772,36 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                   "Is the footprint of the tank rectangular or circular?",
                   style: inputFieldStyle,
                 ),
-                SegmentedButton(
-                  selectedIcon: Icon(Icons.check, color: black),
-                  style: segButtonStyle,
-                  segments: [
-                    ButtonSegment(
-                      value: true,
-                      label: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Text("Rect"),
+                ConstrainedWidthWidget(
+                  child: SegmentedButton(
+                    selectedIcon: Icon(Icons.check, color: black),
+                    style: segButtonStyle,
+                    segments: [
+                      ButtonSegment(
+                        value: true,
+                        label: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Text("Rectangular"),
+                        ),
                       ),
-                    ),
-                    ButtonSegment(
-                      value: false,
-                      label: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Text("Circular"),
+                      ButtonSegment(
+                        value: false,
+                        label: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Text("Circular"),
+                        ),
                       ),
-                    ),
-                  ],
-                  // Set selected segment based on data
-                  selected: {tank.isRectangular},
-                  onSelectionChanged: (Set<bool> newSelection) {
-                    // Update data
-                    setState(() {
-                      tanks[tankIndex].isRectangular = newSelection.first;
-                    });
-                    _saveData();
-                  },
+                    ],
+                    // Set selected segment based on data
+                    selected: {tank.isRectangular},
+                    onSelectionChanged: (Set<bool> newSelection) {
+                      // Update data
+                      setState(() {
+                        tanks[tankIndex].isRectangular = newSelection.first;
+                      });
+                      _saveData();
+                    },
+                  ),
                 ),
 
                 // Rectangular tank dimensions
