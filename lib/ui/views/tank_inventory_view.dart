@@ -769,7 +769,7 @@ class _TankInventoryViewState extends State<TankInventoryView> {
               // Get dimensions based on shape of tank (if capacity not known)
               if (!states['knowTankCapacity']!) ...[
                 Text(
-                  "Is the footprint of the tank rectangular or circular?",
+                  "Is the footprint of the tank circular or rectangular?",
                   style: inputFieldStyle,
                 ),
                 ConstrainedWidthWidget(
@@ -778,17 +778,17 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                     style: segButtonStyle,
                     segments: [
                       ButtonSegment(
-                        value: true,
-                        label: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Text("Rectangular"),
-                        ),
-                      ),
-                      ButtonSegment(
                         value: false,
                         label: Padding(
                           padding: const EdgeInsets.all(16),
                           child: Text("Circular"),
+                        ),
+                      ),
+                      ButtonSegment(
+                        value: true,
+                        label: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Text("Rectangular"),
                         ),
                       ),
                     ],
