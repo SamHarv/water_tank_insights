@@ -5,15 +5,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'config/constants.dart';
 import 'ui/views/home_view.dart';
 
-//TODO: download csv/ presist data locally?
-// Security - store on disk
-// Change name to AquaBalance
+//TODO: Change name to AquaBalance
 
 // flutter run -d chrome --web-experimental-hot-reload
 
-void main() {
-  runApp(const WaterTankInsights());
-}
+/// [main] function is entry point of the app
+void main() => runApp(const WaterTankInsights());
 
 class WaterTankInsights extends StatelessWidget {
   const WaterTankInsights({super.key});

@@ -1,0 +1,168 @@
+Date : 2025-05-28 11:46:30
+Directory : /Users/samharvey/development/flutter_apps/water_tank_insights
+Total : 75 files,  5018 codes, 547 comments, 651 blanks, all 6216 lines
+
+Languages
++------------+------------+------------+------------+------------+------------+
+| language   | files      | code       | comment    | blank      | total      |
++------------+------------+------------+------------+------------+------------+
+| Dart       |         17 |      3,023 |        257 |        269 |      3,549 |
+| C++        |         16 |        550 |        131 |        189 |        870 |
+| XML        |         12 |        519 |         53 |         12 |        584 |
+| CMake      |          8 |        464 |          0 |         92 |        556 |
+| JSON       |          7 |        178 |          0 |          2 |        180 |
+| HTML       |          1 |         89 |         15 |         17 |        121 |
+| Ruby       |          2 |         63 |          4 |         20 |         87 |
+| Swift      |          6 |         61 |          7 |         21 |         89 |
+| YAML       |          2 |         50 |         80 |         18 |        148 |
+| Markdown   |          2 |         13 |          0 |          9 |         22 |
+| Properties |          2 |          8 |          0 |          2 |         10 |
++------------+------------+------------+------------+------------+------------+
+
+Directories
++----------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                                             | files      | code       | comment    | blank      | total      |
++----------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                                                |         75 |      5,018 |        547 |        651 |      6,216 |
+| . (Files)                                                                                                                        |          4 |         61 |         80 |         25 |        166 |
+| android                                                                                                                          |         12 |        145 |         51 |         11 |        207 |
+| android (Files)                                                                                                                  |          1 |          3 |          0 |          1 |          4 |
+| android/app                                                                                                                      |         10 |        137 |         51 |          9 |        197 |
+| android/app (Files)                                                                                                              |          1 |         29 |          0 |          0 |         29 |
+| android/app/src                                                                                                                  |          9 |        108 |         51 |          9 |        168 |
+| android/app/src/debug                                                                                                            |          1 |          3 |          4 |          1 |          8 |
+| android/app/src/main                                                                                                             |          7 |        102 |         43 |          7 |        152 |
+| android/app/src/main (Files)                                                                                                     |          1 |         34 |         11 |          1 |         46 |
+| android/app/src/main/res                                                                                                         |          6 |         68 |         32 |          6 |        106 |
+| android/app/src/main/res/drawable                                                                                                |          1 |          9 |          0 |          1 |         10 |
+| android/app/src/main/res/drawable-v21                                                                                            |          1 |          9 |          0 |          1 |         10 |
+| android/app/src/main/res/values                                                                                                  |          1 |         13 |          9 |          1 |         23 |
+| android/app/src/main/res/values-night                                                                                            |          1 |         13 |          9 |          1 |         23 |
+| android/app/src/main/res/values-night-v31                                                                                        |          1 |         12 |          7 |          1 |         20 |
+| android/app/src/main/res/values-v31                                                                                              |          1 |         12 |          7 |          1 |         20 |
+| android/app/src/profile                                                                                                          |          1 |          3 |          4 |          1 |          8 |
+| android/gradle                                                                                                                   |          1 |          5 |          0 |          1 |          6 |
+| android/gradle/wrapper                                                                                                           |          1 |          5 |          0 |          1 |          6 |
+| ios                                                                                                                              |         10 |        167 |          7 |         23 |        197 |
+| ios (Files)                                                                                                                      |          1 |         31 |          3 |         10 |         44 |
+| ios/Runner                                                                                                                       |          8 |        129 |          2 |          9 |        140 |
+| ios/Runner (Files)                                                                                                               |          2 |         13 |          0 |          3 |         16 |
+| ios/Runner/Assets.xcassets                                                                                                       |          4 |         48 |          0 |          4 |         52 |
+| ios/Runner/Assets.xcassets/AppIcon.appiconset                                                                                    |          1 |          1 |          0 |          0 |          1 |
+| ios/Runner/Assets.xcassets/LaunchBackground.imageset                                                                             |          1 |         21 |          0 |          1 |         22 |
+| ios/Runner/Assets.xcassets/LaunchImage.imageset                                                                                  |          2 |         26 |          0 |          3 |         29 |
+| ios/Runner/Base.lproj                                                                                                            |          2 |         68 |          2 |          2 |         72 |
+| ios/RunnerTests                                                                                                                  |          1 |          7 |          2 |          4 |         13 |
+| lib                                                                                                                              |         15 |      2,865 |        228 |        242 |      3,335 |
+| lib (Files)                                                                                                                      |          1 |         30 |          2 |          7 |         39 |
+| lib/config                                                                                                                       |          1 |         48 |         12 |         13 |         73 |
+| lib/data                                                                                                                         |          1 |         73 |          4 |          5 |         82 |
+| lib/data/models                                                                                                                  |          1 |         73 |          4 |          5 |         82 |
+| lib/logic                                                                                                                        |          3 |        151 |         15 |         34 |        200 |
+| lib/logic (Files)                                                                                                                |          1 |         14 |          6 |          4 |         24 |
+| lib/logic/services                                                                                                               |          2 |        137 |          9 |         30 |        176 |
+| lib/ui                                                                                                                           |          9 |      2,563 |        195 |        183 |      2,941 |
+| lib/ui/views                                                                                                                     |          7 |      2,515 |        194 |        173 |      2,882 |
+| lib/ui/widgets                                                                                                                   |          2 |         48 |          1 |         10 |         59 |
+| linux                                                                                                                            |          9 |        330 |         37 |         92 |        459 |
+| linux (Files)                                                                                                                    |          1 |        104 |          0 |         25 |        129 |
+| linux/flutter                                                                                                                    |          4 |        110 |          9 |         27 |        146 |
+| linux/runner                                                                                                                     |          4 |        116 |         28 |         40 |        184 |
+| macos                                                                                                                            |          7 |        485 |          6 |         26 |        517 |
+| macos (Files)                                                                                                                    |          1 |         32 |          1 |         10 |         43 |
+| macos/Flutter                                                                                                                    |          1 |         12 |          3 |          4 |         19 |
+| macos/Runner                                                                                                                     |          4 |        434 |          0 |          8 |        442 |
+| macos/Runner (Files)                                                                                                             |          2 |         23 |          0 |          7 |         30 |
+| macos/Runner/Assets.xcassets                                                                                                     |          1 |         68 |          0 |          0 |         68 |
+| macos/Runner/Assets.xcassets/AppIcon.appiconset                                                                                  |          1 |         68 |          0 |          0 |         68 |
+| macos/Runner/Base.lproj                                                                                                          |          1 |        343 |          0 |          1 |        344 |
+| macos/RunnerTests                                                                                                                |          1 |          7 |          2 |          4 |         13 |
+| test                                                                                                                             |          2 |        158 |         29 |         27 |        214 |
+| web                                                                                                                              |          2 |        124 |         15 |         17 |        156 |
+| windows                                                                                                                          |         14 |        683 |         94 |        188 |        965 |
+| windows (Files)                                                                                                                  |          1 |         89 |          0 |         20 |        109 |
+| windows/flutter                                                                                                                  |          4 |        132 |          9 |         29 |        170 |
+| windows/runner                                                                                                                   |          9 |        462 |         85 |        139 |        686 |
++----------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++----------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| filename                                                                                                                         | language   | code       | comment    | blank      | total      |
++----------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| /Users/samharvey/development/flutter_apps/water_tank_insights/README.md                                                          | Markdown   |         10 |          0 |          7 |         17 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/analysis_options.yaml                                              | YAML       |          3 |         22 |          4 |         29 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/android/app/google-services.json                                   | JSON       |         29 |          0 |          0 |         29 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/android/app/src/debug/AndroidManifest.xml                          | XML        |          3 |          4 |          1 |          8 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/android/app/src/main/AndroidManifest.xml                           | XML        |         34 |         11 |          1 |         46 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/android/app/src/main/res/drawable-v21/launch_background.xml        | XML        |          9 |          0 |          1 |         10 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/android/app/src/main/res/drawable/launch_background.xml            | XML        |          9 |          0 |          1 |         10 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/android/app/src/main/res/values-night-v31/styles.xml               | XML        |         12 |          7 |          1 |         20 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/android/app/src/main/res/values-night/styles.xml                   | XML        |         13 |          9 |          1 |         23 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/android/app/src/main/res/values-v31/styles.xml                     | XML        |         12 |          7 |          1 |         20 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/android/app/src/main/res/values/styles.xml                         | XML        |         13 |          9 |          1 |         23 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/android/app/src/profile/AndroidManifest.xml                        | XML        |          3 |          4 |          1 |          8 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/android/gradle.properties                                          | Properties |          3 |          0 |          1 |          4 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/android/gradle/wrapper/gradle-wrapper.properties                   | Properties |          5 |          0 |          1 |          6 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/firebase.json                                                      | JSON       |          1 |          0 |          0 |          1 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/ios/Podfile                                                        | Ruby       |         31 |          3 |         10 |         44 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/ios/Runner/AppDelegate.swift                                       | Swift      |         12 |          0 |          2 |         14 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/ios/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json        | JSON       |          1 |          0 |          0 |          1 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/ios/Runner/Assets.xcassets/LaunchBackground.imageset/Contents.json | JSON       |         21 |          0 |          1 |         22 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/ios/Runner/Assets.xcassets/LaunchImage.imageset/Contents.json      | JSON       |         23 |          0 |          1 |         24 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/ios/Runner/Assets.xcassets/LaunchImage.imageset/README.md          | Markdown   |          3 |          0 |          2 |          5 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/ios/Runner/Base.lproj/LaunchScreen.storyboard                      | XML        |         43 |          1 |          1 |         45 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/ios/Runner/Base.lproj/Main.storyboard                              | XML        |         25 |          1 |          1 |         27 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/ios/Runner/Runner-Bridging-Header.h                                | C++        |          1 |          0 |          1 |          2 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/ios/RunnerTests/RunnerTests.swift                                  | Swift      |          7 |          2 |          4 |         13 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/lib/config/constants.dart                                          | Dart       |         48 |         12 |         13 |         73 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/lib/data/models/tank_model.dart                                    | Dart       |         73 |          4 |          5 |         82 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/lib/logic/services/data_persist_service.dart                       | Dart       |        127 |          7 |         27 |        161 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/lib/logic/services/url_launcher.dart                               | Dart       |         10 |          2 |          3 |         15 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/lib/logic/tank_volume_calculator.dart                              | Dart       |         14 |          6 |          4 |         24 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/lib/main.dart                                                      | Dart       |         30 |          2 |          7 |         39 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/lib/ui/views/disclaimer_view.dart                                  | Dart       |        139 |          5 |          5 |        149 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/lib/ui/views/home_view.dart                                        | Dart       |        119 |          5 |          5 |        129 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/lib/ui/views/location_view.dart                                    | Dart       |        273 |         19 |         14 |        306 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/lib/ui/views/output_view.dart                                      | Dart       |        285 |         27 |         12 |        324 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/lib/ui/views/roof_catchment_view.dart                              | Dart       |        411 |         28 |         33 |        472 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/lib/ui/views/tank_inventory_view.dart                              | Dart       |        774 |         81 |         64 |        919 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/lib/ui/views/water_usage_view.dart                                 | Dart       |        514 |         29 |         40 |        583 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/lib/ui/widgets/constrained_width_widget.dart                       | Dart       |         13 |          0 |          3 |         16 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/lib/ui/widgets/input_field_widget.dart                             | Dart       |         35 |          1 |          7 |         43 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/linux/CMakeLists.txt                                               | CMake      |        104 |          0 |         25 |        129 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/linux/flutter/CMakeLists.txt                                       | CMake      |         79 |          0 |         10 |         89 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/linux/flutter/generated_plugin_registrant.cc                       | C++        |          7 |          4 |          5 |         16 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/linux/flutter/generated_plugin_registrant.h                        | C++        |          5 |          5 |          6 |         16 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/linux/flutter/generated_plugins.cmake                              | CMake      |         19 |          0 |          6 |         25 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/linux/runner/CMakeLists.txt                                        | CMake      |         21 |          0 |          6 |         27 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/linux/runner/main.cc                                               | C++        |          5 |          0 |          2 |          7 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/linux/runner/my_application.cc                                     | C++        |         83 |         21 |         27 |        131 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/linux/runner/my_application.h                                      | C++        |          7 |          7 |          5 |         19 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/macos/Flutter/GeneratedPluginRegistrant.swift                      | Swift      |         12 |          3 |          4 |         19 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/macos/Podfile                                                      | Ruby       |         32 |          1 |         10 |         43 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/macos/Runner/AppDelegate.swift                                     | Swift      |         11 |          0 |          3 |         14 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/macos/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json      | JSON       |         68 |          0 |          0 |         68 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/macos/Runner/Base.lproj/MainMenu.xib                               | XML        |        343 |          0 |          1 |        344 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/macos/Runner/MainFlutterWindow.swift                               | Swift      |         12 |          0 |          4 |         16 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/macos/RunnerTests/RunnerTests.swift                                | Swift      |          7 |          2 |          4 |         13 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/pubspec.yaml                                                       | YAML       |         47 |         58 |         14 |        119 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/test/tank_volume_calculator_test.dart                              | Dart       |        157 |         23 |         25 |        205 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/test/widget_test.dart                                              | Dart       |          1 |          6 |          2 |          9 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/web/index.html                                                     | HTML       |         89 |         15 |         17 |        121 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/web/manifest.json                                                  | JSON       |         35 |          0 |          0 |         35 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/windows/CMakeLists.txt                                             | CMake      |         89 |          0 |         20 |        109 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/windows/flutter/CMakeLists.txt                                     | CMake      |         98 |          0 |         12 |        110 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/windows/flutter/generated_plugin_registrant.cc                     | C++        |          9 |          4 |          5 |         18 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/windows/flutter/generated_plugin_registrant.h                      | C++        |          5 |          5 |          6 |         16 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/windows/flutter/generated_plugins.cmake                            | CMake      |         20 |          0 |          6 |         26 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/windows/runner/CMakeLists.txt                                      | CMake      |         34 |          0 |          7 |         41 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/windows/runner/flutter_window.cpp                                  | C++        |         49 |          7 |         16 |         72 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/windows/runner/flutter_window.h                                    | C++        |         20 |          5 |          9 |         34 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/windows/runner/main.cpp                                            | C++        |         30 |          4 |         10 |         44 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/windows/runner/resource.h                                          | C++        |          9 |          6 |          2 |         17 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/windows/runner/utils.cpp                                           | C++        |         54 |          2 |         10 |         66 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/windows/runner/utils.h                                             | C++        |          8 |          6 |          6 |         20 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/windows/runner/win32_window.cpp                                    | C++        |        210 |         24 |         55 |        289 |
+| /Users/samharvey/development/flutter_apps/water_tank_insights/windows/runner/win32_window.h                                      | C++        |         48 |         31 |         24 |        103 |
+| Total                                                                                                                            |            |      5,018 |        547 |        651 |      6,216 |
++----------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+

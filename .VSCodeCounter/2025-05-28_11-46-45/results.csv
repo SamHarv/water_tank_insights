@@ -1,0 +1,17 @@
+"filename", "language", "Dart", "comment", "blank", "total"
+"/Users/samharvey/development/flutter_apps/water_tank_insights/lib/config/constants.dart", "Dart", 48, 12, 13, 73
+"/Users/samharvey/development/flutter_apps/water_tank_insights/lib/data/models/tank_model.dart", "Dart", 73, 4, 5, 82
+"/Users/samharvey/development/flutter_apps/water_tank_insights/lib/logic/services/data_persist_service.dart", "Dart", 127, 7, 27, 161
+"/Users/samharvey/development/flutter_apps/water_tank_insights/lib/logic/services/url_launcher.dart", "Dart", 10, 2, 3, 15
+"/Users/samharvey/development/flutter_apps/water_tank_insights/lib/logic/tank_volume_calculator.dart", "Dart", 14, 6, 4, 24
+"/Users/samharvey/development/flutter_apps/water_tank_insights/lib/main.dart", "Dart", 30, 2, 7, 39
+"/Users/samharvey/development/flutter_apps/water_tank_insights/lib/ui/views/disclaimer_view.dart", "Dart", 139, 5, 5, 149
+"/Users/samharvey/development/flutter_apps/water_tank_insights/lib/ui/views/home_view.dart", "Dart", 119, 5, 5, 129
+"/Users/samharvey/development/flutter_apps/water_tank_insights/lib/ui/views/location_view.dart", "Dart", 273, 19, 14, 306
+"/Users/samharvey/development/flutter_apps/water_tank_insights/lib/ui/views/output_view.dart", "Dart", 285, 27, 12, 324
+"/Users/samharvey/development/flutter_apps/water_tank_insights/lib/ui/views/roof_catchment_view.dart", "Dart", 411, 28, 33, 472
+"/Users/samharvey/development/flutter_apps/water_tank_insights/lib/ui/views/tank_inventory_view.dart", "Dart", 774, 81, 64, 919
+"/Users/samharvey/development/flutter_apps/water_tank_insights/lib/ui/views/water_usage_view.dart", "Dart", 514, 29, 40, 583
+"/Users/samharvey/development/flutter_apps/water_tank_insights/lib/ui/widgets/constrained_width_widget.dart", "Dart", 13, 0, 3, 16
+"/Users/samharvey/development/flutter_apps/water_tank_insights/lib/ui/widgets/input_field_widget.dart", "Dart", 35, 1, 7, 43
+"Total", "-", 2865, 228, 242, 3335

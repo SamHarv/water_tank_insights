@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:water_tank_insights/logic/services/url_launcher.dart';
 import 'package:water_tank_insights/ui/views/home_view.dart';
 import 'package:water_tank_insights/ui/widgets/constrained_width_widget.dart';
 
@@ -226,6 +227,8 @@ class _OutputViewState extends State<OutputView> {
                                   optimisationIsPressed = false;
                                 });
                               });
+
+                              UrlLauncher.launchOptimisationTips();
 
                               // Save data before navigating
                               // _saveData();

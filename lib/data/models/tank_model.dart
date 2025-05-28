@@ -1,19 +1,22 @@
 class Tank {
-  final String id;
-  int capacity;
-  int waterLevel;
-  bool isRectangular;
-  double length;
-  double width;
-  double height;
-  double waterHeight;
-  double diameter;
+  /// [Tank] model
+  final String id; // id for tank
+  int capacity; // tank capacity in L
+  int waterLevel; // current tank water level in L
+  bool isRectangular; // tank is rectangular (true) or circular (false)
+  double
+  length; // tank length from front to back in m for rectangular calculation
+  double
+  width; // tank width from left to right in m for rectangular calculation
+  double height; // tank height in m
+  double waterHeight; // tank water height in m
+  double diameter; // tank diameter in m for circular calculation
 
   Tank({
     required this.id,
     this.capacity = 0,
     this.waterLevel = 0,
-    this.isRectangular = false,
+    this.isRectangular = false, // default to circular (more common)
     this.length = 0,
     this.width = 0,
     this.height = 0,
