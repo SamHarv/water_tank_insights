@@ -19,7 +19,7 @@ class WaterTankInsights extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Water Tank Insights',
+      title: appTitle,
       theme: ThemeData(
         fontFamily: GoogleFonts.openSans().fontFamily,
         colorScheme: ColorScheme.fromSeed(seedColor: blue, secondary: black),

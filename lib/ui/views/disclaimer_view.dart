@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:water_tank_insights/ui/widgets/constrained_width_widget.dart';
 
 import '../../config/constants.dart';
 import 'location_view.dart';
 
 class DisclaimerView extends StatefulWidget {
+  /// [DisclaimerView] displays a disclaimer with which to agree before
+  /// using the tool
   const DisclaimerView({super.key});
 
   @override
@@ -11,48 +14,26 @@ class DisclaimerView extends StatefulWidget {
 }
 
 class _DisclaimerViewState extends State<DisclaimerView> {
-  // Button state for animation
+  // Initialise button state for press animation
   bool isPressed = false;
+
   @override
   Widget build(BuildContext context) {
-    final mediaWidth = MediaQuery.sizeOf(context).width;
     return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 80,
-        backgroundColor: Colors.transparent,
-        automaticallyImplyLeading: true,
-        leadingWidth: 80,
-        leading: IconButton(
-          icon: Padding(
-            padding: EdgeInsets.fromLTRB(24, 12, 32, 12),
-            child: Icon(Icons.arrow_back_ios_new),
-          ),
-          color: white,
-          onPressed: () => Navigator.pop(context), // Back to prev view
-        ),
-        actions: [
-          Hero(
-            tag: "logo",
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(0, 12, 48, 12),
-              child: Image.asset(logo),
-            ),
-          ),
-        ],
-      ),
+      // Build consistent app bar
+      appBar: buildAppBar(context),
       body: Center(
+        // Scrollable page to allow for varying screen heights
         child: SingleChildScrollView(
           child: Padding(
-            padding: kPadding,
+            padding: kPadding, // 32px padding
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               spacing: 32,
               children: [
                 // Disclaimer text
-                ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: 500),
+                ConstrainedWidthWidget(
                   child: Container(
-                    width: mediaWidth * 0.8,
                     decoration: BoxDecoration(
                       color: white,
                       border: Border.all(color: black, width: 3),
@@ -72,16 +53,13 @@ class _DisclaimerViewState extends State<DisclaimerView> {
                               style: subHeadingStyle,
                             ),
                             Text(
-                              "This tool uses calculations to estinmate water "
+                              "This tool uses calculations to estimate water "
                               "intake and usage, and may not reflect actual "
                               "intake and usage. Results should not be relied "
                               "upon for critical decisions without "
                               "professional advice. Data entered into this app "
                               "will be stored on your device and kept private.",
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.black,
-                              ),
+                              style: TextStyle(fontSize: 16, color: black),
                             ),
                           ],
                         ),
@@ -92,10 +70,9 @@ class _DisclaimerViewState extends State<DisclaimerView> {
                 // Agree & Continue button
                 Tooltip(
                   message: "Agree to disclaimer and continue",
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(maxWidth: 500),
+                  child: ConstrainedWidthWidget(
                     child: InkWell(
-                      borderRadius: kBorderRadius,
+                      borderRadius: kBorderRadius, // 32px border radius
                       onTap: () {
                         // Handle button press animation
                         setState(() {
@@ -107,6 +84,7 @@ class _DisclaimerViewState extends State<DisclaimerView> {
                           setState(() {
                             isPressed = false;
                           });
+                          // Navigate to location view
                           Navigator.push(
                             // ignore: use_build_context_synchronously
                             context,
@@ -117,7 +95,6 @@ class _DisclaimerViewState extends State<DisclaimerView> {
                         });
                       },
                       child: AnimatedContainer(
-                        width: mediaWidth * 0.8,
                         duration: const Duration(milliseconds: 100),
                         decoration: BoxDecoration(
                           color: white,

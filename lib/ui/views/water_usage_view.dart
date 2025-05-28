@@ -438,7 +438,9 @@ class _WaterUsageViewState extends State<WaterUsageView> {
                       ),
                       TextButton(
                         child: Text("click here"),
-                        onPressed: () => UrlLauncher.launchWaterUsageTool(),
+                        onPressed:
+                            () async =>
+                                await UrlLauncher.launchWaterUsageTool(),
                       ),
                     ],
                   ),

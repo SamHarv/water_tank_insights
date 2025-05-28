@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:water_tank_insights/ui/widgets/constrained_width_widget.dart';
 
 import '../../config/constants.dart';
 import 'disclaimer_view.dart';
 
 class HomeView extends StatefulWidget {
+  /// [HomeView] is the welcome screen of the app
   const HomeView({super.key});
 
   @override
@@ -12,30 +14,34 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-  // Button state for animation
+  // Button state for press animation
   bool isPressed = false;
   @override
   Widget build(BuildContext context) {
+    // MediaQueries for screen height and width
     final mediaHeight = MediaQuery.sizeOf(context).height;
     final mediaWidth = MediaQuery.sizeOf(context).width;
     return Scaffold(
       body: Center(
+        // Scrollable page to allow for varying screen heights
         child: SingleChildScrollView(
           child: Padding(
-            padding: kPadding,
+            padding: kPadding, // 32px padding
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               spacing: 32,
               children: [
+                // Logo
                 ConstrainedBox(
                   constraints: BoxConstraints(maxHeight: mediaHeight * 0.3),
                   child: Hero(tag: "logo", child: Image.asset(logo)),
                 ),
+                // App Title - stack to achieve outlined text
                 Stack(
                   children: [
                     // Stroked text as border.
                     Text(
-                      "Water Tank Insights",
+                      appTitle,
                       style: GoogleFonts.openSans(
                         textStyle: TextStyle(
                           fontSize: 24,
@@ -51,7 +57,7 @@ class _HomeViewState extends State<HomeView> {
                     ),
                     // Solid text as fill.
                     Text(
-                      "Water Tank Insights",
+                      appTitle,
                       style: GoogleFonts.openSans(
                         textStyle: const TextStyle(
                           fontFamily: "Open Sans",
@@ -63,22 +69,26 @@ class _HomeViewState extends State<HomeView> {
                     ),
                   ],
                 ),
-                Text(
-                  "When water is the new gold, we help protect yours.",
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.openSans(
-                    textStyle: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                // Tagline
+                ConstrainedWidthWidget(
+                  child: Text(
+                    "When water is the new gold, we help protect yours.",
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.openSans(
+                      textStyle: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
                   ),
                 ),
+                // Button to begin
                 Tooltip(
                   message: "Continue to next step",
                   child: ConstrainedBox(
                     constraints: BoxConstraints(maxWidth: 300),
                     child: InkWell(
-                      borderRadius: kBorderRadius,
+                      borderRadius: kBorderRadius, // 32px radius
                       onTap: () {
                         // Handle button press animation
                         setState(() {
@@ -90,6 +100,7 @@ class _HomeViewState extends State<HomeView> {
                           setState(() {
                             isPressed = false;
                           });
+                          // navigate to disclaimer view
                           Navigator.push(
                             // ignore: use_build_context_synchronously
                             context,

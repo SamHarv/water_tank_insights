@@ -222,13 +222,12 @@ class _OutputViewState extends State<OutputView> {
                               });
                               Future.delayed(
                                 const Duration(milliseconds: 150),
-                              ).then((value) {
+                              ).then((value) async {
                                 setState(() {
                                   optimisationIsPressed = false;
                                 });
+                                await UrlLauncher.launchOptimisationTips();
                               });
-
-                              UrlLauncher.launchOptimisationTips();
 
                               // Save data before navigating
                               // _saveData();

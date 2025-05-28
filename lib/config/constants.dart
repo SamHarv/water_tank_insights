@@ -5,6 +5,8 @@ const black = Colors.black;
 const blue = Color.fromARGB(255, 0, 195, 255);
 const white = Colors.white;
 
+const appTitle = "AquaBalance";
+
 // Logo
 const logo = 'images/white_droplet.png';
 
@@ -70,3 +72,29 @@ const kShadow = BoxShadow(
   offset: Offset(4, 4),
   blurStyle: BlurStyle.solid,
 );
+
+AppBar buildAppBar(BuildContext context) {
+  return AppBar(
+    toolbarHeight: 80,
+    backgroundColor: Colors.transparent,
+    automaticallyImplyLeading: true,
+    leadingWidth: 80,
+    leading: IconButton(
+      icon: Padding(
+        padding: EdgeInsets.fromLTRB(24, 12, 32, 12),
+        child: Icon(Icons.arrow_back_ios_new),
+      ),
+      color: white,
+      onPressed: () => Navigator.pop(context), // Back to prev view
+    ),
+    actions: [
+      Hero(
+        tag: "logo",
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(0, 12, 48, 12),
+          child: Image.asset(logo),
+        ),
+      ),
+    ],
+  );
+}
