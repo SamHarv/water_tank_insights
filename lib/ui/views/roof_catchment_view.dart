@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:water_tank_insights/ui/views/water_usage_view.dart';
 import 'package:water_tank_insights/ui/widgets/input_field_widget.dart';
 
 import '../../config/constants.dart';
@@ -225,6 +226,12 @@ class _RoofCatchmentViewState extends State<RoofCatchmentView> {
               spacing: 32,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                ConstrainedWidthWidget(
+                  child: Text(
+                    "Roof Catchment & Other Intake",
+                    style: headingStyle,
+                  ),
+                ),
                 // Know catchment area?
                 ConstrainedWidthWidget(
                   child: Text(
@@ -425,7 +432,13 @@ class _RoofCatchmentViewState extends State<RoofCatchmentView> {
                         // Save data before navigating
                         _saveData();
 
-                        // TODO: Navigate to next step
+                        // Navigate to water usage view
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => WaterUsageView(),
+                          ),
+                        );
                       },
                       child: AnimatedContainer(
                         width: mediaWidth * 0.8,

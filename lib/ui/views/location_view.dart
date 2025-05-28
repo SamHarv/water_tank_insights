@@ -89,6 +89,10 @@ class _LocationViewState extends State<LocationView> {
               mainAxisAlignment: MainAxisAlignment.center,
               spacing: 32,
               children: [
+                // How many tanks?
+                ConstrainedWidthWidget(
+                  child: Text("Location", style: headingStyle),
+                ),
                 // Enter your location
                 ConstrainedWidthWidget(
                   child: Text("Enter your location:", style: inputFieldStyle),

@@ -537,6 +537,12 @@ class _TankInventoryViewState extends State<TankInventoryView> {
               mainAxisAlignment: MainAxisAlignment.center,
               spacing: 32,
               children: [
+                ConstrainedWidthWidget(
+                  child: Text(
+                    "Tank Inventory Calculations",
+                    style: headingStyle,
+                  ),
+                ),
                 // How many tanks?
                 ConstrainedWidthWidget(
                   child: Text(
