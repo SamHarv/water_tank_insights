@@ -150,14 +150,14 @@ class _OutputViewState extends State<OutputView> {
                       width: mediaWidth * 0.8,
                       initialSelection: selectedRainfall,
                       dropdownMenuEntries: [
-                        // TODO: update rainfall patterns
+                        // TODO: update rainfall patterns - option for no rain
                         DropdownMenuEntry(
                           value: "Lowest recorded",
                           label: "Lowest recorded",
                         ),
                         DropdownMenuEntry(
-                          value: "10-year median",
-                          label: "10-year median",
+                          value: "10-year average",
+                          label: "10-year average",
                         ),
 
                         DropdownMenuEntry(

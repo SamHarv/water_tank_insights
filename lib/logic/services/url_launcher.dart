@@ -1,23 +1,39 @@
 import 'package:url_launcher/url_launcher.dart';
 
 class UrlLauncher {
-  /// Class to acces [UrlLauncher]
+  /// Class to access [UrlLauncher]
 
   /// Launch water usage estimate website
   static Future<void> launchWaterUsageTool() async {
-    if (!await launchUrl(
-      Uri.parse('https://smartwatermark.org/watercalculator/NSW/#results'),
-    )) {
-      throw 'Could not launch https://smartwatermark.org/watercalculator/NSW/#results';
-    }
+    const String url =
+        'https://smartwatermark.org/watercalculator/NSW/#results';
+    await _launchUrl(url);
   }
 
   /// Launch water optimisation tips website
   static Future<void> launchOptimisationTips() async {
-    if (!await launchUrl(
-      Uri.parse('https://www.yourhome.gov.au/water/reducing-water-use'),
-    )) {
-      throw 'Could not launch https://www.yourhome.gov.au/water/reducing-water-use';
+    const String url = 'https://www.yourhome.gov.au/water/reducing-water-use';
+    await _launchUrl(url);
+  }
+
+  /// Fallback method using url_launcher package
+  static Future<void> _launchUrl(String urlString) async {
+    final Uri url = Uri.parse(urlString);
+
+    try {
+      if (!await launchUrl(
+        url,
+        mode: LaunchMode.externalApplication,
+        webOnlyWindowName: '_blank',
+      )) {
+        throw 'Could not launch $url';
+      }
+    } catch (e) {
+      print('Error launching URL: $e');
+      // Final fallback: try with platform default
+      if (!await launchUrl(url)) {
+        throw 'Could not launch $url';
+      }
     }
   }
 }

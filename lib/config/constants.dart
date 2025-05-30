@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 // Used colours
 const black = Colors.black;
@@ -11,20 +12,22 @@ const appTitle = "AquaBalance";
 const logo = 'images/white_droplet.png';
 
 // Style for view headings
-const headingStyle = TextStyle(fontSize: 28, fontWeight: FontWeight.bold);
+final headingStyle = GoogleFonts.openSans(
+  textStyle: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+);
 
 // Style for subheadings
-const subHeadingStyle = TextStyle(
-  fontSize: 16,
-  fontWeight: FontWeight.bold,
-  color: Colors.black,
+final subHeadingStyle = GoogleFonts.openSans(
+  textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
 );
 
 // Style for input fields
-const inputFieldStyle = TextStyle(
-  color: Colors.black,
-  fontSize: 20,
-  fontWeight: FontWeight.bold,
+final inputFieldStyle = GoogleFonts.openSans(
+  textStyle: TextStyle(
+    color: Colors.black,
+    fontSize: 20,
+    fontWeight: FontWeight.bold,
+  ),
 );
 
 // Style for segmented buttons

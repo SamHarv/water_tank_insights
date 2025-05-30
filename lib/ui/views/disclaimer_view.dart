@@ -45,13 +45,7 @@ class _DisclaimerViewState extends State<DisclaimerView> {
                         child: Column(
                           spacing: 24,
                           children: [
-                            Text(
-                              "Estimate how many days of water inventory you have "
-                              "in your water tank based on current inventory, "
-                              "predicted rainfall, and estimated water usage to "
-                              "better manage your supply.",
-                              style: subHeadingStyle,
-                            ),
+                            Text("Disclaimer", style: headingStyle),
                             Text(
                               "This tool uses calculations to estimate water "
                               "intake and usage, and may not reflect actual "
@@ -59,7 +53,7 @@ class _DisclaimerViewState extends State<DisclaimerView> {
                               "upon for critical decisions without "
                               "professional advice. Data entered into this app "
                               "will be stored on your device and kept private.",
-                              style: TextStyle(fontSize: 16, color: black),
+                              style: subHeadingStyle,
                             ),
                           ],
                         ),

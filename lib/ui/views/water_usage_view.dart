@@ -261,16 +261,18 @@ class _WaterUsageViewState extends State<WaterUsageView> {
                     onChanged: (number) {
                       // Ensure number within range
                       try {
-                        final n = int.parse(number);
-                        if (n < 1 || n > 20) {
-                          if (number.isNotEmpty) {
-                            showAlertDialog(
-                              "Please enter a number of people between 1 and 20",
-                            );
+                        if (number.isNotEmpty) {
+                          final n = int.parse(number);
+                          if (n < 1 || n > 20) {
+                            if (number.isNotEmpty) {
+                              showAlertDialog(
+                                "Please enter a number of people between 1 and 20",
+                              );
+                            }
+                            return;
                           }
-                          return;
+                          _updateNumOfPeople(n);
                         }
-                        _updateNumOfPeople(n);
                       } catch (e) {
                         if (number.isNotEmpty) {
                           showAlertDialog(
@@ -325,6 +327,7 @@ class _WaterUsageViewState extends State<WaterUsageView> {
                                 ),
                               ),
                               SizedBox(height: 12),
+                              // TODO: Allow option for manual input - 0-1500
                               SegmentedButton<int>(
                                 style: segButtonStyle,
                                 segments: [

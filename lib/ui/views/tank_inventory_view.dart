@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:water_tank_insights/logic/tank_volume_calculator.dart';
+import 'package:water_tank_insights/ui/views/water_usage_view.dart';
 import 'package:water_tank_insights/ui/widgets/constrained_width_widget.dart';
 import 'package:water_tank_insights/ui/widgets/input_field_widget.dart';
 
@@ -36,6 +37,11 @@ class _TankInventoryViewState extends State<TankInventoryView> {
   static const String _tanksKey = 'tanks_data';
   static const String _tankCountKey = 'tank_count';
   static const String _tankStatesKey = 'tank_states';
+
+  // Roof catchment keys for clearing when no tanks
+  static const String _knowRoofCatchmentKey = 'know_roof_catchment';
+  static const String _roofCatchmentAreaKey = 'roof_catchment_area';
+  static const String _otherIntakeKey = 'other_intake';
 
   // Loading state to prevent premature UI builds
   bool isLoading = true;
@@ -126,6 +132,22 @@ class _TankInventoryViewState extends State<TankInventoryView> {
     }
   }
 
+  // Clear roof catchment data when user has 0 tanks
+  Future<void> _clearRoofCatchmentData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      // Remove all roof catchment related data
+      await prefs.remove(_knowRoofCatchmentKey);
+      await prefs.remove(_roofCatchmentAreaKey);
+      await prefs.remove(_otherIntakeKey);
+
+      print('Cleared roof catchment data since user has 0 tanks');
+    } catch (e) {
+      print('Error clearing roof catchment data: $e');
+    }
+  }
+
   // Initialise new tanks
   void _initialiseTanks() {
     // Ensure tanks data is empty
@@ -210,7 +232,7 @@ class _TankInventoryViewState extends State<TankInventoryView> {
   }
 
   // Update number of tanks
-  void _updateTankCount(int newCount) {
+  void _updateTankCount(int newCount) async {
     if (newCount < 0 || newCount > 20) return;
 
     setState(() {
@@ -260,8 +282,14 @@ class _TankInventoryViewState extends State<TankInventoryView> {
       numOfTanks = newCount;
 
       _addListeners();
-      _saveData(); // Save data
     });
+
+    // Clear roof catchment data if user has 0 tanks
+    if (newCount == 0) {
+      await _clearRoofCatchmentData();
+    }
+
+    _saveData(); // Save data
   }
 
   // Save data to SharedPreferences
@@ -362,7 +390,8 @@ class _TankInventoryViewState extends State<TankInventoryView> {
 
       // Calculate water level if not known
       if (i < tankStates.length && !tankStates[i]['knowTankWaterLevel']!) {
-        if (tank.waterHeight > tank.height) {
+        if (tank.waterHeight > tank.height &&
+            !tankStates[i]['knowTankCapacity']!) {
           showAlertDialog(
             "Water level cannot be higher than tank height for Tank ${i + 1}",
           );
@@ -458,6 +487,27 @@ class _TankInventoryViewState extends State<TankInventoryView> {
     );
 
     _saveData(); // Save updated calculations
+  }
+
+  // Continue with 0 tanks - skip roof catchment and go directly to water usage
+  void _continueWithZeroTanks() async {
+    // Clear tanks and roof catchment data
+    tanks.clear();
+    tankStates.clear();
+    tankControllers.clear();
+
+    // Clear roof catchment data since no tanks
+    await _clearRoofCatchmentData();
+
+    // Save the cleared state
+    await _saveData();
+
+    // Navigate directly to water usage view, skipping roof catchment
+    Navigator.push(
+      // ignore: use_build_context_synchronously
+      context,
+      MaterialPageRoute(builder: (context) => WaterUsageView()),
+    );
   }
 
   @override
@@ -561,6 +611,7 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                           showAlertDialog(
                             "Please enter a number between 0 and 20",
                           );
+                          numOfTanksController.text = numOfTanks.toString();
                           return;
                         }
                         _updateTankCount(newCount); // Update tank count
@@ -569,6 +620,7 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                           showAlertDialog(
                             "Please enter a valid number between 0 and 20",
                           );
+                          numOfTanksController.text = numOfTanks.toString();
                         }
                       }
                     },
@@ -599,6 +651,166 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                             setState(() {
                               isPressed = false;
                             });
+                            // TODO: ensure fields are valid
+                            //
+
+                            for (int i = 0; i < numOfTanks; i++) {
+                              // Ensure tank data is valid
+
+                              // Know tank capacity and tank level validation
+                              if (tankStates[i]['knowTankCapacity']! &&
+                                  tankStates[i]['knowTankWaterLevel']!) {
+                                if (tanks[i].capacity == 0 ||
+                                    tankControllers[i]['capacity']?.text ==
+                                        "") {
+                                  showAlertDialog(
+                                    "Capacity must be a number greater than 0 for Tank ${i + 1}",
+                                  );
+                                  return;
+                                } else if (tankControllers[i]['waterLevel']
+                                        ?.text ==
+                                    "") {
+                                  showAlertDialog(
+                                    "Tank level must have a value for Tank ${i + 1}",
+                                  );
+                                  return;
+                                } else if (tanks[i].waterLevel >
+                                    tanks[i].capacity) {
+                                  showAlertDialog(
+                                    "Tank level must be less than capacity for Tank ${i + 1}",
+                                  );
+                                  return;
+                                }
+                              }
+
+                              // Know tank capacity but not water level validation
+                              if (tankStates[i]['knowTankCapacity']! &&
+                                  !tankStates[i]['knowTankWaterLevel']!) {
+                                if (tanks[i].capacity == 0 ||
+                                    tankControllers[i]['capacity']?.text ==
+                                        "") {
+                                  showAlertDialog(
+                                    "Capacity must be greater than 0 for Tank ${i + 1}",
+                                  );
+                                  return;
+                                } else if (tankControllers[i]['waterHeight']
+                                        ?.text ==
+                                    "") {
+                                  showAlertDialog(
+                                    "Water level must have a value for Tank ${i + 1}",
+                                  );
+                                  return;
+                                } else if (tanks[i].waterHeight >
+                                    tanks[i].capacity) {
+                                  showAlertDialog(
+                                    "Water level must be less than capacity for Tank ${i + 1}",
+                                  );
+                                  return;
+                                }
+                              }
+
+                              // Know water level but not tank capacity validation
+                              if (!tankStates[i]['knowTankCapacity']! &&
+                                  tankStates[i]['knowTankWaterLevel']!) {
+                                if (tankControllers[i]['waterLevel']?.text ==
+                                    "") {
+                                  showAlertDialog(
+                                    "Tank level must have a value for Tank ${i + 1}",
+                                  );
+                                  return;
+                                } else {
+                                  if (tanks[i].isRectangular) {
+                                    // check width & length are valid
+                                    if (tanks[i].width == 0 ||
+                                        tankControllers[i]['width']?.text ==
+                                            "") {
+                                      showAlertDialog(
+                                        "Width must be greater than 0 for Tank ${i + 1}",
+                                      );
+                                      return;
+                                    } else if (tanks[i].length == 0 ||
+                                        tankControllers[i]['length']?.text ==
+                                            "") {
+                                      showAlertDialog(
+                                        "Length must be greater than 0 for Tank ${i + 1}",
+                                      );
+                                      return;
+                                    }
+                                  } else {
+                                    // check diameter is valid
+                                    if (tanks[i].diameter == 0 ||
+                                        tankControllers[i]['diameter']?.text ==
+                                            "") {
+                                      showAlertDialog(
+                                        "Diameter must be greater than 0 for Tank ${i + 1}",
+                                      );
+                                      return;
+                                    }
+                                  }
+                                  // check height is valid
+                                  if (tanks[i].height == 0 ||
+                                      tankControllers[i]['height']?.text ==
+                                          "") {
+                                    showAlertDialog(
+                                      "Height must be greater than 0 for Tank ${i + 1}",
+                                    );
+                                    return;
+                                  }
+                                }
+                              }
+
+                              // Know neither tank capacity nor water level validation
+                              if (!tankStates[i]['knowTankCapacity']! &&
+                                  !tankStates[i]['knowTankWaterLevel']!) {
+                                if (tankControllers[i]['waterHeight']?.text ==
+                                    "") {
+                                  showAlertDialog(
+                                    "Water level must have a value for Tank ${i + 1}",
+                                  );
+                                  return;
+                                } else {
+                                  if (tanks[i].isRectangular) {
+                                    // check width & length are valid
+
+                                    if (tanks[i].width == 0 ||
+                                        tankControllers[i]['width']?.text ==
+                                            "") {
+                                      showAlertDialog(
+                                        "Width must be greater than 0 for Tank ${i + 1}",
+                                      );
+                                      return;
+                                    } else if (tanks[i].length == 0 ||
+                                        tankControllers[i]['length']?.text ==
+                                            "") {
+                                      showAlertDialog(
+                                        "Length must be greater than 0 for Tank ${i + 1}",
+                                      );
+                                      return;
+                                    }
+                                  } else {
+                                    // check diameter is valid
+                                    if (tanks[i].diameter == 0 ||
+                                        tankControllers[i]['diameter']?.text ==
+                                            "") {
+                                      showAlertDialog(
+                                        "Diameter must be greater than 0 for Tank ${i + 1}",
+                                      );
+                                      return;
+                                    } else if (tanks[i].height == 0 ||
+                                        tankControllers[i]['height']?.text ==
+                                            "") {
+                                      showAlertDialog(
+                                        "Height must be greater than 0 for Tank ${i + 1}",
+                                      );
+                                      return;
+                                    }
+                                  }
+                                }
+
+                                // "waterHeight (m)" "waterLevel (litres)"
+                              }
+                            }
+
                             _calculateAllTanks(); // Perform calculations
                           });
                         },
@@ -617,6 +829,83 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                                 "Calculate All Tanks",
                                 style: subHeadingStyle,
                               ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ] else if (numOfTanks == 0) ...[
+                  // Show message and continue button for 0 tanks
+                  ConstrainedWidthWidget(
+                    child: Container(
+                      padding: EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade50,
+                        border: Border.all(color: black, width: 3),
+                        borderRadius: kBorderRadius,
+                      ),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            size: 32,
+                            color: Colors.orange.shade800,
+                          ),
+                          SizedBox(height: 12),
+                          Text(
+                            "No Water Tanks",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.orange.shade800,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            "Since you have no water tanks, we'll skip the roof catchment calculations and proceed directly to water usage.",
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.orange.shade700,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Continue button for 0 tanks - skips roof catchment
+                  Tooltip(
+                    message: "Continue to water usage (skip roof catchment)",
+                    child: ConstrainedWidthWidget(
+                      child: InkWell(
+                        borderRadius: kBorderRadius,
+                        onTap: () {
+                          setState(() {
+                            isPressed = true;
+                          });
+                          Future.delayed(
+                            const Duration(milliseconds: 150),
+                          ).then((value) {
+                            setState(() {
+                              isPressed = false;
+                            });
+                            _continueWithZeroTanks();
+                          });
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 100),
+                          decoration: BoxDecoration(
+                            color: white,
+                            border: Border.all(color: black, width: 3),
+                            borderRadius: kBorderRadius,
+                            boxShadow: [isPressed ? BoxShadow() : kShadow],
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Center(
+                              child: Text("Continue", style: subHeadingStyle),
                             ),
                           ),
                         ),
@@ -693,6 +982,23 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                       tankStates[tankIndex]['knowTankCapacity'] =
                           newSelection.first;
                     });
+                    // Capacity
+                    if (tankStates[tankIndex]['knowTankCapacity']!) {
+                      // clear height, width, diameter, length
+                      controllers['height']!.clear();
+                      tanks[tankIndex].height = 0;
+                      controllers['width']!.clear();
+                      tanks[tankIndex].width = 0;
+                      controllers['diameter']!.clear();
+                      tanks[tankIndex].diameter = 0;
+                      controllers['length']!.clear();
+                      tanks[tankIndex].length = 0;
+                    } else if (!tankStates[tankIndex]['knowTankCapacity']!) {
+                      // clear capacity
+                      controllers['capacity']!.clear();
+                      tanks[tankIndex].capacity = 0;
+                    }
+
                     _saveData();
                   },
                 ),
@@ -705,9 +1011,14 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                   label: "Tank capacity (L)",
                   onChanged: (value) {
                     try {
-                      tanks[tankIndex].capacity = int.tryParse(value) ?? 0;
+                      if (tankControllers[tankIndex]['capacity']!
+                          .text
+                          .isNotEmpty) {
+                        tanks[tankIndex].capacity = int.tryParse(value)!;
+                      }
                     } catch (e) {
                       showAlertDialog("Please enter a number (litres)");
+                      tankControllers[tankIndex]['capacity']!.clear();
                     }
                   },
                 ),
@@ -743,6 +1054,16 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                       tankStates[tankIndex]['knowTankWaterLevel'] =
                           newSelection.first;
                     });
+                    // water level
+                    if (tankStates[tankIndex]['knowTankWaterLevel']!) {
+                      // clear water height
+                      controllers['waterHeight']!.clear();
+                      tanks[tankIndex].waterHeight = 0;
+                    } else if (!tankStates[tankIndex]['knowTankWaterLevel']!) {
+                      // clear water level
+                      controllers['waterLevel']!.clear();
+                      tanks[tankIndex].waterLevel = 0;
+                    }
                     _saveData();
                   },
                 ),
@@ -755,18 +1076,25 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                   label: "Tank level (L)",
                   onChanged: (value) {
                     try {
-                      tanks[tankIndex].waterLevel = int.tryParse(value) ?? 0;
-                      if (tanks[tankIndex].waterLevel >
-                          tanks[tankIndex].capacity) {
-                        showAlertDialog(
-                          "Tank level cannot be greater than capacity",
-                        );
-                        tanks[tankIndex].waterLevel = tanks[tankIndex].capacity;
-                        controllers['waterLevel']!.text =
-                            tanks[tankIndex].waterLevel.toString();
+                      if (tankControllers[tankIndex]['waterLevel']!
+                          .text
+                          .isNotEmpty) {
+                        tanks[tankIndex].waterLevel = int.tryParse(value)!;
+                        if (tanks[tankIndex].waterLevel >
+                                tanks[tankIndex].capacity &&
+                            tankStates[tankIndex]['knowTankCapacity']!) {
+                          showAlertDialog(
+                            "Tank level cannot be greater than capacity",
+                          );
+                          tanks[tankIndex].waterLevel =
+                              tanks[tankIndex].capacity;
+                          controllers['waterLevel']!.text =
+                              tanks[tankIndex].waterLevel.toString();
+                        }
                       }
                     } catch (e) {
                       showAlertDialog("Please enter a number (litres)");
+                      tankControllers[tankIndex]['waterLevel']!.clear();
                     }
                   },
                 ),
@@ -805,6 +1133,18 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                       setState(() {
                         tanks[tankIndex].isRectangular = newSelection.first;
                       });
+                      // Rectangular
+                      if (tanks[tankIndex].isRectangular) {
+                        // clear width, length
+                        controllers['width']!.clear();
+                        tanks[tankIndex].width = 0;
+                        controllers['length']!.clear();
+                        tanks[tankIndex].length = 0;
+                      } else if (!tanks[tankIndex].isRectangular) {
+                        // clear diameter
+                        controllers['diameter']!.clear();
+                        tanks[tankIndex].diameter = 0;
+                      }
                       _saveData();
                     },
                   ),
@@ -825,10 +1165,15 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                           label: "Length (m)",
                           onChanged: (value) {
                             try {
-                              tanks[tankIndex].length =
-                                  double.tryParse(value) ?? 0;
+                              if (tankControllers[tankIndex]['length']!
+                                  .text
+                                  .isNotEmpty) {
+                                tanks[tankIndex].length =
+                                    double.tryParse(value)!;
+                              }
                             } catch (e) {
                               showAlertDialog("Please enter a number (metres)");
+                              tankControllers[tankIndex]['length']!.clear();
                             }
                           },
                         ),
@@ -842,10 +1187,15 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                           label: "Width (m)",
                           onChanged: (value) {
                             try {
-                              tanks[tankIndex].width =
-                                  double.tryParse(value) ?? 0;
+                              if (tankControllers[tankIndex]['width']!
+                                  .text
+                                  .isNotEmpty) {
+                                tanks[tankIndex].width =
+                                    double.tryParse(value)!;
+                              }
                             } catch (e) {
                               showAlertDialog("Please enter a number (metres)");
+                              tankControllers[tankIndex]['width']!.clear();
                             }
                           },
                         ),
@@ -864,9 +1214,14 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                     label: "Diameter (m)",
                     onChanged: (value) {
                       try {
-                        tanks[tankIndex].diameter = double.tryParse(value) ?? 0;
+                        if (tankControllers[tankIndex]['diameter']!
+                            .text
+                            .isNotEmpty) {
+                          tanks[tankIndex].diameter = double.tryParse(value)!;
+                        }
                       } catch (e) {
                         showAlertDialog("Please enter a number (metres)");
+                        tankControllers[tankIndex]['diameter']!.clear();
                       }
                     },
                   ),
@@ -882,9 +1237,14 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                   label: "Height (m)",
                   onChanged: (value) {
                     try {
-                      tanks[tankIndex].height = double.tryParse(value) ?? 0;
+                      if (tankControllers[tankIndex]['height']!
+                          .text
+                          .isNotEmpty) {
+                        tanks[tankIndex].height = double.tryParse(value)!;
+                      }
                     } catch (e) {
                       showAlertDialog("Please enter a number (metres)");
+                      tankControllers[tankIndex]['height']!.clear();
                     }
                   },
                 ),
@@ -901,10 +1261,12 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                   label: "Water Level (m)",
                   onChanged: (value) {
                     try {
-                      tanks[tankIndex].waterHeight =
-                          double.tryParse(value) ?? 0;
+                      if (controllers['waterHeight']!.text.isNotEmpty) {
+                        tanks[tankIndex].waterHeight = double.tryParse(value)!;
+                      }
                     } catch (e) {
                       showAlertDialog("Please enter a number (metres)");
+                      controllers['waterHeight']!.clear();
                     }
                   },
                 ),

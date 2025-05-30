@@ -77,7 +77,27 @@ class _HomeViewState extends State<HomeView> {
                     style: GoogleFonts.openSans(
                       textStyle: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ),
+                ),
+                ConstrainedWidthWidget(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: white,
+                      border: Border.all(color: black, width: 3),
+                      borderRadius: kBorderRadius,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        "Estimate how many days of water inventory you have "
+                        "in your water tank based on current inventory, "
+                        "predicted rainfall, and estimated water usage to "
+                        "better manage your supply.",
+                        // textAlign: TextAlign.center,
+                        style: subHeadingStyle,
                       ),
                     ),
                   ),
