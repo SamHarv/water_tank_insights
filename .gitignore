@@ -1,4 +1,6 @@
-lib/firebase_options.dart
+/lib/firebase_options.dart
+/lib/logic/services/supabase_service.dart
+
 
 # Miscellaneous
 *.class
