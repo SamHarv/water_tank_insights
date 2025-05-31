@@ -923,6 +923,7 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                       tanks[tankIndex].diameter = 0;
                       controllers['length']!.clear();
                       tanks[tankIndex].length = 0;
+                      tankStates[tankIndex]['knowTankWaterLevel'] = true;
                     } else if (!tankStates[tankIndex]['knowTankCapacity']!) {
                       // clear capacity
                       controllers['capacity']!.clear();
@@ -981,9 +982,17 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                   onSelectionChanged: (Set<bool> newSelection) {
                     // Update data
                     setState(() {
-                      tankStates[tankIndex]['knowTankWaterLevel'] =
-                          newSelection.first;
+                      if (tankStates[tankIndex]['knowTankCapacity']!) {
+                        tankStates[tankIndex]['knowTankWaterLevel'] = true;
+                        showAlertDialog(
+                          "You must input tank level if you know the tank's capacity.",
+                        );
+                      } else {
+                        tankStates[tankIndex]['knowTankWaterLevel'] =
+                            newSelection.first;
+                      }
                     });
+
                     // water level
                     if (tankStates[tankIndex]['knowTankWaterLevel']!) {
                       // clear water height
@@ -1193,7 +1202,7 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                   controller: controllers['waterHeight']!,
                   label:
                       states['knowTankCapacity']!
-                          ? "Percentage full (%)"
+                          ? "Percentage estimate (%)"
                           : "Water Level (m)",
                   onChanged: (value) {
                     try {
