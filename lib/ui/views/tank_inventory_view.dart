@@ -364,9 +364,10 @@ class _TankInventoryViewState extends State<TankInventoryView> {
       }
 
       // Calculate water level if not known
-      if (i < tankStates.length && !tankStates[i]['knowTankWaterLevel']!) {
-        if (tank.waterHeight > tank.height &&
-            !tankStates[i]['knowTankCapacity']!) {
+      if (i < tankStates.length &&
+          !tankStates[i]['knowTankWaterLevel']! &&
+          !tankStates[i]['knowTankCapacity']!) {
+        if (tank.waterHeight > tank.height) {
           showAlertDialog(
             "Water level cannot be higher than tank height for Tank ${i + 1}",
           );
@@ -383,6 +384,11 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                   tank.diameter,
                   tank.waterHeight,
                 );
+      }
+
+      if (tankStates[i]['knowTankCapacity']! &&
+          !tankStates[i]['knowTankWaterLevel']!) {
+        tank.waterLevel = (tank.capacity * (tank.waterHeight / 100)).toInt();
       }
 
       // Calculate total capacity and inventory
@@ -1175,21 +1181,31 @@ class _TankInventoryViewState extends State<TankInventoryView> {
               ],
 
               // Current water level (if not known)
+              // gugvuy
               if (!states['knowTankWaterLevel']!) ...[
                 Text(
-                  "What is the current water level of the tank?",
+                  states['knowTankCapacity']!
+                      ? "How full is the tank?"
+                      : "What is the current water level of the tank?",
                   style: inputFieldStyle,
                 ),
                 InputFieldWidget(
                   controller: controllers['waterHeight']!,
-                  label: "Water Level (m)",
+                  label:
+                      states['knowTankCapacity']!
+                          ? "Percentage full (%)"
+                          : "Water Level (m)",
                   onChanged: (value) {
                     try {
                       if (controllers['waterHeight']!.text.isNotEmpty) {
                         tanks[tankIndex].waterHeight = double.tryParse(value)!;
                       }
                     } catch (e) {
-                      showAlertDialog("Please enter a number (metres)");
+                      showAlertDialog(
+                        states['knowTankCapacity']!
+                            ? "Please enter a number (0-100)"
+                            : "Please enter a number (metres)",
+                      );
                       controllers['waterHeight']!.clear();
                     }
                   },

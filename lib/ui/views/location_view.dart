@@ -31,6 +31,8 @@ class _LocationViewState extends State<LocationView> {
   // Postcode selection to choose location
   String? selectedPostcode;
 
+  late final TextEditingController postcodeController;
+
   // Chart data
   List<MonthlyRainfall>? monthlyRainfallData;
   double? annualRainfall;
@@ -48,6 +50,7 @@ class _LocationViewState extends State<LocationView> {
   @override
   void initState() {
     super.initState();
+    postcodeController = TextEditingController();
     _loadSavedData();
   }
 
@@ -155,6 +158,27 @@ class _LocationViewState extends State<LocationView> {
     }
     await prefs.setDouble(_yearKey, yearSelected);
     await prefs.setString(_timePeriodKey, timePeriod);
+  }
+
+  // Show alert dialog
+  void _showAlertDialog(String message) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: kBorderRadius,
+              side: kBorderSide,
+            ),
+            title: Text(message, style: subHeadingStyle),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text("OK", style: TextStyle(color: black)),
+              ),
+            ],
+          ),
+    );
   }
 
   // Updated _buildRainfallChart method for location_view.dart
@@ -507,6 +531,7 @@ class _LocationViewState extends State<LocationView> {
                       initialSelection: selectedPostcode,
                       requestFocusOnTap:
                           true, // allow typing on mobile for filter
+
                       dropdownMenuEntries:
                           // All postcodes
                           availablePostcodes
@@ -543,7 +568,15 @@ class _LocationViewState extends State<LocationView> {
                       enableFilter: true,
                       hintText:
                           "Select postcode (${PostcodesService.length} available)",
+                      controller: postcodeController,
                       onSelected: (postcode) {
+                        // validate postcode
+                        if (!PostcodesService.isValidPostcode(
+                          postcodeController.text,
+                        )) {
+                          postcodeController.clear();
+                          _showAlertDialog("Please enter a valid postcode");
+                        }
                         setState(() {
                           selectedPostcode = postcode;
                         });
@@ -690,6 +723,14 @@ class _LocationViewState extends State<LocationView> {
                             isPressed = false;
                           });
                         });
+
+                        if (!PostcodesService.isValidPostcode(
+                          postcodeController.text,
+                        )) {
+                          postcodeController.clear();
+                          _showAlertDialog("Please enter a valid postcode");
+                          return;
+                        }
 
                         _saveData(); // save
 
