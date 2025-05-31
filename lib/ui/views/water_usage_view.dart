@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '/logic/services/url_launcher.dart';
@@ -24,9 +25,16 @@ class _WaterUsageViewState extends State<WaterUsageView> {
   // List to store individual water usage for each person
   List<int> personWaterUsageList = [];
 
+  // List to store manual input controllers for each person
+  List<TextEditingController> manualInputControllers = [];
+
+  // List to track which input method is being used for each person (true = manual, false = segmented)
+  List<bool> isManualInputList = [];
+
   // SharedPreferences keys
   static const String _numOfPeopleKey = 'num_of_people';
   static const String _personWaterUsageListKey = 'person_water_usage_list';
+  static const String _isManualInputListKey = 'is_manual_input_list';
 
   // Loading state
   bool isLoading = true;
@@ -56,6 +64,15 @@ class _WaterUsageViewState extends State<WaterUsageView> {
           personWaterUsageList = usageData.cast<int>();
         }
 
+        // Load manual input preferences
+        final savedManualInputList = prefs.getString(_isManualInputListKey);
+        if (savedManualInputList != null) {
+          final List<dynamic> manualInputData = json.decode(
+            savedManualInputList,
+          );
+          isManualInputList = manualInputData.cast<bool>();
+        }
+
         // Ensure the usage list matches the number of people
         _adjustUsageListSize();
 
@@ -76,20 +93,47 @@ class _WaterUsageViewState extends State<WaterUsageView> {
   void _adjustUsageListSize() {
     while (personWaterUsageList.length < numOfPeople) {
       personWaterUsageList.add(200); // Default to average usage
+      isManualInputList.add(false); // Default to segmented button
+      manualInputControllers.add(TextEditingController());
     }
+
     if (personWaterUsageList.length > numOfPeople) {
+      // Dispose excess controllers
+      for (int i = numOfPeople; i < manualInputControllers.length; i++) {
+        manualInputControllers[i].dispose();
+      }
+
       personWaterUsageList = personWaterUsageList.sublist(0, numOfPeople);
+      isManualInputList = isManualInputList.sublist(0, numOfPeople);
+      manualInputControllers = manualInputControllers.sublist(0, numOfPeople);
+    }
+
+    // Update manual input controllers with current values
+    for (int i = 0; i < manualInputControllers.length; i++) {
+      if (isManualInputList[i]) {
+        manualInputControllers[i].text = personWaterUsageList[i].toString();
+      }
     }
   }
 
   // Add listener to controller for auto-save
   void _addListener() {
     numOfPeopleController.addListener(_saveData);
+
+    // Add listeners to manual input controllers
+    for (int i = 0; i < manualInputControllers.length; i++) {
+      manualInputControllers[i].addListener(() => _saveData());
+    }
   }
 
   // Remove listener from controller
   void _removeListener() {
     numOfPeopleController.removeListener(_saveData);
+
+    // Remove listeners from manual input controllers
+    for (final controller in manualInputControllers) {
+      controller.removeListener(_saveData);
+    }
   }
 
   // Save data to SharedPreferences
@@ -104,6 +148,12 @@ class _WaterUsageViewState extends State<WaterUsageView> {
       await prefs.setString(
         _personWaterUsageListKey,
         json.encode(personWaterUsageList),
+      );
+
+      // Save manual input preferences
+      await prefs.setString(
+        _isManualInputListKey,
+        json.encode(isManualInputList),
       );
     } catch (e) {
       throw 'Error saving water usage data: $e';
@@ -129,6 +179,49 @@ class _WaterUsageViewState extends State<WaterUsageView> {
         personWaterUsageList[personIndex] = usage;
       });
       _saveData(); // Save data when usage changes
+    }
+  }
+
+  // Toggle between manual input and segmented button for a person
+  void _toggleInputMethod(int personIndex) {
+    setState(() {
+      isManualInputList[personIndex] = !isManualInputList[personIndex];
+
+      if (isManualInputList[personIndex]) {
+        // Switching to manual input - populate field with current value
+        manualInputControllers[personIndex].text =
+            personWaterUsageList[personIndex].toString();
+      } else {
+        // Switching to segmented button - ensure value is one of the preset options
+        final currentValue = personWaterUsageList[personIndex];
+        if (currentValue != 100 && currentValue != 200 && currentValue != 300) {
+          // If current value isn't a preset, default to average
+          personWaterUsageList[personIndex] = 200;
+        }
+      }
+    });
+    _saveData();
+  }
+
+  // Handle manual input change
+  void _handleManualInputChange(int personIndex, String value) {
+    try {
+      if (value.isEmpty) {
+        _updatePersonUsage(personIndex, 0);
+        return;
+      }
+
+      final usage = int.parse(value);
+      if (usage < 0 || usage > 1500) {
+        showAlertDialog("Please enter a value between 0 and 1500 litres");
+        return;
+      }
+
+      _updatePersonUsage(personIndex, usage);
+    } catch (e) {
+      if (value.isNotEmpty) {
+        showAlertDialog("Please enter a valid number between 0 and 1500");
+      }
     }
   }
 
@@ -170,7 +263,7 @@ class _WaterUsageViewState extends State<WaterUsageView> {
       case 300:
         return "High (300L)";
       default:
-        return "Avg (200L)";
+        return "Custom (${usage}L)";
     }
   }
 
@@ -178,6 +271,12 @@ class _WaterUsageViewState extends State<WaterUsageView> {
   void dispose() {
     _removeListener();
     numOfPeopleController.dispose();
+
+    // Dispose all manual input controllers
+    for (final controller in manualInputControllers) {
+      controller.dispose();
+    }
+
     super.dispose();
   }
 
@@ -289,13 +388,31 @@ class _WaterUsageViewState extends State<WaterUsageView> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                "Person ${i + 1}",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: black,
-                                ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "Person ${i + 1}",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: black,
+                                    ),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => _toggleInputMethod(i),
+                                    child: Text(
+                                      isManualInputList[i]
+                                          ? "Use Presets"
+                                          : "Custom Input",
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.blue.shade700,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                               SizedBox(height: 8),
                               Text(
@@ -307,61 +424,98 @@ class _WaterUsageViewState extends State<WaterUsageView> {
                               ),
                               SizedBox(height: 12),
 
-                              // TODO: Allow option for manual input - 0-1500
-                              SegmentedButton<int>(
-                                style: segButtonStyle,
-                                segments: [
-                                  ButtonSegment(
-                                    value: 100,
-                                    label: Padding(
-                                      padding: const EdgeInsets.all(12),
-                                      child: Column(
-                                        children: [
-                                          Text("Low"),
-                                          Text(
-                                            "100L",
-                                            style: TextStyle(fontSize: 12),
-                                          ),
-                                        ],
-                                      ),
+                              // Show either manual input or segmented button based on user preference
+                              if (isManualInputList[i]) ...[
+                                // Manual input field
+                                TextFormField(
+                                  controller: manualInputControllers[i],
+                                  keyboardType: TextInputType.number,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                    LengthLimitingTextInputFormatter(
+                                      4,
+                                    ), // Max 1500
+                                  ],
+                                  decoration: InputDecoration(
+                                    labelText: "Daily usage in litres (0-1500)",
+                                    border: OutlineInputBorder(
+                                      borderRadius: kBorderRadius,
+                                    ),
+                                    suffixText: "L",
+                                    contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 12,
                                     ),
                                   ),
-                                  ButtonSegment(
-                                    value: 200,
-                                    label: Padding(
-                                      padding: const EdgeInsets.all(12),
-                                      child: Column(
-                                        children: [
-                                          Text("Avg"),
-                                          Text(
-                                            "200L",
-                                            style: TextStyle(fontSize: 12),
-                                          ),
-                                        ],
+                                  onChanged:
+                                      (value) =>
+                                          _handleManualInputChange(i, value),
+                                ),
+                              ] else ...[
+                                // Segmented button for preset values
+                                SegmentedButton<int>(
+                                  style: segButtonStyle,
+                                  segments: [
+                                    ButtonSegment(
+                                      value: 100,
+                                      label: Padding(
+                                        padding: const EdgeInsets.all(12),
+                                        child: Column(
+                                          children: [
+                                            Text("Low"),
+                                            Text(
+                                              "100L",
+                                              style: TextStyle(fontSize: 12),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  ButtonSegment(
-                                    value: 300,
-                                    label: Padding(
-                                      padding: const EdgeInsets.all(12),
-                                      child: Column(
-                                        children: [
-                                          Text("High"),
-                                          Text(
-                                            "300L",
-                                            style: TextStyle(fontSize: 12),
-                                          ),
-                                        ],
+                                    ButtonSegment(
+                                      value: 200,
+                                      label: Padding(
+                                        padding: const EdgeInsets.all(12),
+                                        child: Column(
+                                          children: [
+                                            Text("Avg"),
+                                            Text(
+                                              "200L",
+                                              style: TextStyle(fontSize: 12),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ],
-                                selected: {personWaterUsageList[i]},
-                                onSelectionChanged: (value) {
-                                  _updatePersonUsage(i, value.first);
-                                },
-                              ),
+                                    ButtonSegment(
+                                      value: 300,
+                                      label: Padding(
+                                        padding: const EdgeInsets.all(12),
+                                        child: Column(
+                                          children: [
+                                            Text("High"),
+                                            Text(
+                                              "300L",
+                                              style: TextStyle(fontSize: 12),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                  selected: {
+                                    // Only show selection if current value matches a preset
+                                    if ([
+                                      100,
+                                      200,
+                                      300,
+                                    ].contains(personWaterUsageList[i]))
+                                      personWaterUsageList[i],
+                                  },
+                                  onSelectionChanged: (value) {
+                                    _updatePersonUsage(i, value.first);
+                                  },
+                                ),
+                              ],
                             ],
                           ),
                         ),
