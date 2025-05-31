@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:water_tank_insights/ui/views/water_usage_view.dart';
-import 'package:water_tank_insights/ui/widgets/input_field_widget.dart';
 
-import '../../config/constants.dart';
+import '/ui/views/water_usage_view.dart';
+import '/ui/widgets/input_field_widget.dart';
+import '/config/constants.dart';
 import '../widgets/constrained_width_widget.dart';
 
 class RoofCatchmentView extends StatefulWidget {
-  // TODO: refactor
+  /// [RoofCatchmentView] to take roof catchment area and other intake
   const RoofCatchmentView({super.key});
 
   @override
@@ -18,6 +18,7 @@ class _RoofCatchmentViewState extends State<RoofCatchmentView> {
   // Button states for animation
   bool learnToMeasureIsPressed = false;
   bool continueButtonIsPressed = false;
+  // Determine whether the user knows their roof catchment
   bool knowRoofCatchment = false;
 
   late final TextEditingController roofCatchmentController;
@@ -65,10 +66,10 @@ class _RoofCatchmentViewState extends State<RoofCatchmentView> {
       // Add listeners for auto-save after loading data
       _addListeners();
     } catch (e) {
-      print('Error loading roof catchment data: $e');
       setState(() {
         isLoading = false;
       });
+      throw 'Error loading roof catchment data: $e';
     }
   }
 
@@ -99,7 +100,7 @@ class _RoofCatchmentViewState extends State<RoofCatchmentView> {
       );
       await prefs.setString(_otherIntakeKey, otherIntakeController.text);
     } catch (e) {
-      print('Error saving roof catchment data: $e');
+      rethrow;
     }
   }
 
@@ -166,58 +167,14 @@ class _RoofCatchmentViewState extends State<RoofCatchmentView> {
     // Show loading spinner while data is being loaded
     if (isLoading) {
       return Scaffold(
-        appBar: AppBar(
-          toolbarHeight: 80,
-          backgroundColor: Colors.transparent,
-          automaticallyImplyLeading: true,
-          leadingWidth: 80,
-          leading: IconButton(
-            icon: Padding(
-              padding: EdgeInsets.fromLTRB(24, 12, 32, 12),
-              child: Icon(Icons.arrow_back_ios_new),
-            ),
-            color: white,
-            onPressed: () => Navigator.pop(context),
-          ),
-          actions: [
-            Hero(
-              tag: "logo",
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(0, 12, 48, 12),
-                child: Image.asset(logo),
-              ),
-            ),
-          ],
-        ),
+        appBar: buildAppBar(context),
         body: Center(child: CircularProgressIndicator(color: white)),
       );
     }
 
     final mediaWidth = MediaQuery.sizeOf(context).width;
     return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 80,
-        backgroundColor: Colors.transparent,
-        automaticallyImplyLeading: true,
-        leadingWidth: 80,
-        leading: IconButton(
-          icon: Padding(
-            padding: EdgeInsets.fromLTRB(24, 12, 32, 12),
-            child: Icon(Icons.arrow_back_ios_new),
-          ),
-          color: white,
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          Hero(
-            tag: "logo",
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(0, 12, 48, 12),
-              child: Image.asset(logo),
-            ),
-          ),
-        ],
-      ),
+      appBar: buildAppBar(context),
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
@@ -289,7 +246,7 @@ class _RoofCatchmentViewState extends State<RoofCatchmentView> {
                               });
                             });
 
-                            // TODO: Add instructional video to measure roof catchment on Maps
+                            // TODO: Add instructional video to measure roof catchment on Maps?
 
                             // Show information dialog
                             showDialog(
@@ -383,6 +340,18 @@ class _RoofCatchmentViewState extends State<RoofCatchmentView> {
                     label: "Catchment Area (m²)",
                     controller: roofCatchmentController,
                     onChanged: (value) {
+                      // Validate inputs
+                      if (roofCatchmentController.text.isNotEmpty) {
+                        try {
+                          double.parse(value);
+                        } catch (e) {
+                          _showAlertDialog(
+                            "Please enter a valid numerical roof catchment area in m²",
+                          );
+                          roofCatchmentController.clear();
+                          return;
+                        }
+                      }
                       setState(() {});
                       // Auto-save is handled by the listener
                     },
@@ -400,6 +369,18 @@ class _RoofCatchmentViewState extends State<RoofCatchmentView> {
                     label: "Other Intake (L/day)",
                     controller: otherIntakeController,
                     onChanged: (value) {
+                      // Validate inputs
+                      if (otherIntakeController.text.isNotEmpty) {
+                        try {
+                          double.parse(value);
+                        } catch (e) {
+                          _showAlertDialog(
+                            "Please enter a valid numerical other intake in L/day",
+                          );
+                          otherIntakeController.clear();
+                          return;
+                        }
+                      }
                       setState(() {});
                       // Auto-save is handled by the listener
                     },

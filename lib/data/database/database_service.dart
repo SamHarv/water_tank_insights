@@ -1,34 +1,30 @@
-// lib/logic/services/database_service.dart
-// Updated to use API instead of Supabase
-
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
-
-import '../../logic/services/postcode_service.dart';
 import '../api/rainfall_api.dart';
 
 class DatabaseService {
+  /// [DatabaseService] to access API data
+
+  // Singleton
   static final DatabaseService _instance = DatabaseService._internal();
   factory DatabaseService() => _instance;
   DatabaseService._internal();
 
-  // Cache for storing data locally
+  // Cache for storing weather data locally
   static final Map<String, CacheEntry> _cache = {};
-  static const Duration _cacheTimeout = Duration(
-    hours: 1,
-  ); // Shorter cache for API data
+  static const Duration _cacheTimeout = Duration(hours: 1);
 
-  // Cache management
+  // Check whether cache is still valid
   static bool _isCacheValid(String key) {
     final entry = _cache[key];
     if (entry == null) return false;
     return DateTime.now().difference(entry.timestamp) < _cacheTimeout;
   }
 
+  // Set cache
   static void _setCache(String key, dynamic data) {
     _cache[key] = CacheEntry(data: data, timestamp: DateTime.now());
   }
 
+  // Get cache
   static T? _getCache<T>(String key) {
     if (_isCacheValid(key)) {
       return _cache[key]?.data as T?;
@@ -36,18 +32,19 @@ class DatabaseService {
     return null;
   }
 
-  // Get weather data using API
+  // Get weather data using Rainfall API
   Future<List<WeatherData>> getWeatherByPostcode({
     required String postcode,
     required DateTime startDate,
     required DateTime endDate,
-    int? limit,
+    int? limit, // Optional - limit number of data points
     bool useCache = true,
   }) async {
+    // Cache key for weather data
     final cacheKey =
         'weather_api_${postcode}_${startDate.year}_${endDate.year}';
 
-    // Check cache first
+    // Check cache
     if (useCache) {
       final cached = _getCache<List<WeatherData>>(cacheKey);
       if (cached != null) {
@@ -63,11 +60,13 @@ class DatabaseService {
     }
 
     try {
+      // Initialise list to hold all weather data
       final List<WeatherData> allWeatherData = [];
 
       // Get data year by year to avoid overwhelming the API
       for (int year = startDate.year; year <= endDate.year; year++) {
         try {
+          // Get rainfall data using API
           final rainfallRecords = await RainfallApiService.getRainfallData(
             postcode: postcode,
             year: year,
@@ -81,8 +80,7 @@ class DatabaseService {
           // Add small delay to avoid overwhelming the API
           await Future.delayed(Duration(milliseconds: 100));
         } catch (e) {
-          print('Failed to get data for $postcode year $year: $e');
-          // Continue with next year
+          throw Exception('Failed to fetch weather data from API: $e');
         }
       }
 
@@ -130,8 +128,10 @@ class DatabaseService {
       );
     }
 
+    // Cache key
     final cacheKey = 'monthly_rainfall_api_${postcode}_$year';
 
+    // Check cache
     if (useCache) {
       final cached = _getCache<List<MonthlyRainfall>>(cacheKey);
       if (cached != null) return cached;
@@ -162,13 +162,13 @@ class DatabaseService {
         );
       });
 
+      // Cache the result
       if (useCache) {
         _setCache(cacheKey, monthlyData);
       }
 
       return monthlyData;
     } catch (e) {
-      print('Failed to get monthly rainfall from API: $e');
       // Return empty data on error
       return List.generate(
         12,
@@ -184,202 +184,48 @@ class DatabaseService {
     bool useCache = true,
   }) async {
     try {
+      // Get monthly data using API
       final monthlyData = await getMonthlyRainfall(
         postcode: postcode,
         year: year,
         useCache: useCache,
       );
 
+      // Sum total rainfall for year
       return monthlyData.map((d) => d.totalRainfall).reduce((a, b) => a + b);
     } catch (e) {
-      print('Failed to get annual rainfall: $e');
       return 0.0;
     }
   }
 
-  // Get available postcodes (now using hardcoded + API fallback)
-  Future<List<PostcodeInfo>> getAvailablePostcodes({
-    bool useCache = true,
-  }) async {
-    try {
-      // Try to get from API first
-      final apiPostcodes = await RainfallApiService.getAvailablePostcodes();
-      return apiPostcodes.map((pc) => PostcodeInfo(postcode: pc)).toList();
-    } catch (e) {
-      // Fallback to hardcoded postcodes
-      print('API postcodes failed, using hardcoded: $e');
-      return PostcodesService.getAvailablePostcodeInfos();
-    }
-  }
-
-  // Calculate water depletion forecast using API data
-  Future<List<WaterForecast>> calculateWaterDepletion({
-    required String postcode,
-    required double currentInventory,
-    required double dailyUsage,
-    required double roofCatchmentArea,
-    required double otherDailyIntake,
-    required int forecastDays,
-    String rainfallPattern = '10-year average',
-    bool useCache = true,
-  }) async {
-    final cacheKey =
-        'water_forecast_api_${postcode}_${rainfallPattern}_${forecastDays}';
-
-    if (useCache) {
-      final cached = _getCache<List<WaterForecast>>(cacheKey);
-      if (cached != null) return cached;
-    }
-
-    try {
-      final now = DateTime.now();
-      List<WaterForecast> forecast = [];
-      double waterLevel = currentInventory;
-
-      // Get historical data for pattern calculation
-      Map<int, double> dailyAverages = {};
-
-      if (rainfallPattern != 'No rain') {
-        try {
-          // Get last 3 years of data for pattern calculation
-          final historicalData = await getWeatherByPostcode(
-            postcode: postcode,
-            startDate: DateTime(now.year - 3, 1, 1),
-            endDate: now,
-            useCache: useCache,
-          );
-
-          if (historicalData.isNotEmpty) {
-            // Calculate daily averages
-            Map<int, List<double>> dailyRainfalls = {};
-
-            for (var data in historicalData) {
-              final dayOfYear =
-                  data.date.difference(DateTime(data.date.year, 1, 1)).inDays;
-              dailyRainfalls[dayOfYear] ??= [];
-              dailyRainfalls[dayOfYear]!.add(data.rainfall);
-            }
-
-            dailyRainfalls.forEach((day, rainfalls) {
-              dailyAverages[day] =
-                  rainfalls.reduce((a, b) => a + b) / rainfalls.length;
-            });
-          }
-        } catch (e) {
-          print('Failed to get historical data for forecast: $e');
-        }
-      }
-
-      // Generate forecast
-      for (int day = 0; day <= forecastDays; day++) {
-        final currentDate = now.add(Duration(days: day));
-        final dayOfYear =
-            currentDate.difference(DateTime(currentDate.year, 1, 1)).inDays;
-
-        double expectedRainfall = 0;
-        if (rainfallPattern != 'No rain' && dailyAverages.isNotEmpty) {
-          expectedRainfall = dailyAverages[dayOfYear % 365] ?? 0;
-        }
-
-        double rainwaterCollected = expectedRainfall * roofCatchmentArea * 0.8;
-        double dailyIntake = rainwaterCollected + otherDailyIntake;
-        double netChange = dailyIntake - dailyUsage;
-
-        waterLevel = (waterLevel + netChange).clamp(0, double.infinity);
-
-        forecast.add(
-          WaterForecast(
-            date: currentDate,
-            waterLevel: waterLevel,
-            rainfall: expectedRainfall,
-            intake: dailyIntake,
-            usage: dailyUsage,
-          ),
-        );
-
-        if (waterLevel <= 0) break;
-      }
-
-      if (useCache) {
-        _setCache(cacheKey, forecast);
-      }
-
-      return forecast;
-    } catch (e) {
-      throw Exception('Failed to calculate water depletion: $e');
-    }
-  }
-
-  // Get weather statistics using API data
-  Future<WeatherStats> getWeatherStats({
-    required String postcode,
-    required DateTime startDate,
-    required DateTime endDate,
-    bool useCache = true,
-  }) async {
-    try {
-      final weatherData = await getWeatherByPostcode(
-        postcode: postcode,
-        startDate: startDate,
-        endDate: endDate,
-        useCache: useCache,
-      );
-
-      if (weatherData.isEmpty) {
-        return WeatherStats(
-          avgRainfall: 0,
-          maxRainfall: 0,
-          minRainfall: 0,
-          totalRainfall: 0,
-          avgTemperature: 0,
-          maxTemperature: 0,
-          minTemperature: 0,
-          dataPoints: 0,
-        );
-      }
-
-      final rainfalls = weatherData.map((d) => d.rainfall).toList();
-      final temperatures = weatherData.map((d) => d.temperature).toList();
-
-      return WeatherStats(
-        avgRainfall: rainfalls.reduce((a, b) => a + b) / rainfalls.length,
-        maxRainfall: rainfalls.reduce((a, b) => a > b ? a : b),
-        minRainfall: rainfalls.reduce((a, b) => a < b ? a : b),
-        totalRainfall: rainfalls.reduce((a, b) => a + b),
-        avgTemperature:
-            temperatures.reduce((a, b) => a + b) / temperatures.length,
-        maxTemperature: temperatures.reduce((a, b) => a > b ? a : b),
-        minTemperature: temperatures.reduce((a, b) => a < b ? a : b),
-        dataPoints: weatherData.length,
-      );
-    } catch (e) {
-      throw Exception('Failed to fetch weather statistics: $e');
-    }
-  }
-
-  // Cache management
-  static void clearCache() {
-    _cache.clear();
-  }
-
-  static void clearExpiredCache() {
-    final now = DateTime.now();
-    _cache.removeWhere(
-      (key, entry) => now.difference(entry.timestamp) > _cacheTimeout,
-    );
-  }
+  // TODO: delete this if all is working
+  // // Get available postcodes (now using hardcoded + API fallback)
+  // Future<List<PostcodeInfo>> getAvailablePostcodes({
+  //   bool useCache = true,
+  // }) async {
+  //   try {
+  //     // Try to get from API first
+  //     final apiPostcodes = await RainfallApiService.getAvailablePostcodes();
+  //     print("Success!");
+  //     return apiPostcodes.map((pc) => PostcodeInfo(postcode: pc)).toList();
+  //   } catch (e) {
+  //     // Fallback to hardcoded postcodes
+  //     print('API postcodes failed, using hardcoded: $e');
+  //     return PostcodesService.getAvailablePostcodeInfos();
+  //   }
+  // }
 }
 
-// Cache entry class
 class CacheEntry {
+  /// [CacheEntry] class to hold data and timestamp
   final dynamic data;
   final DateTime timestamp;
 
   CacheEntry({required this.data, required this.timestamp});
 }
 
-// Keep the existing model classes but ensure they're here
 class WeatherData {
+  /// [WeatherData] class to hold data for a single day
   final String postcode;
   final DateTime date;
   final double rainfall;
@@ -403,6 +249,7 @@ class WeatherData {
 }
 
 class MonthlyRainfall {
+  /// [MonthlyRainfall] class to hold data for a single month
   final int month;
   final double totalRainfall;
 
@@ -425,42 +272,8 @@ class MonthlyRainfall {
     ];
     return months[month - 1];
   }
-}
 
-class WaterForecast {
-  final DateTime date;
-  final double waterLevel;
-  final double rainfall;
-  final double intake;
-  final double usage;
-
-  WaterForecast({
-    required this.date,
-    required this.waterLevel,
-    required this.rainfall,
-    required this.intake,
-    required this.usage,
-  });
-}
-
-class WeatherStats {
-  final double avgRainfall;
-  final double maxRainfall;
-  final double minRainfall;
-  final double totalRainfall;
-  final double avgTemperature;
-  final double maxTemperature;
-  final double minTemperature;
-  final int dataPoints;
-
-  WeatherStats({
-    required this.avgRainfall,
-    required this.maxRainfall,
-    required this.minRainfall,
-    required this.totalRainfall,
-    required this.avgTemperature,
-    required this.maxTemperature,
-    required this.minTemperature,
-    required this.dataPoints,
-  });
+  @override
+  String toString() =>
+      'MonthlyRainfall(month: $month, totalRainfall: $totalRainfall)';
 }

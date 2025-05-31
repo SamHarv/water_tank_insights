@@ -1,33 +1,38 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-// Used colours
+// Colour pallete
 const black = Colors.black;
 const blue = Color.fromARGB(255, 0, 195, 255);
 const white = Colors.white;
 
+// App title
 const appTitle = "AquaBalance";
 
 // Logo
 const logo = 'images/white_droplet.png';
 
-// Style for view headings
+// Style for headings
 final headingStyle = GoogleFonts.openSans(
-  textStyle: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+  textStyle: const TextStyle(
+    color: black,
+    fontSize: 28,
+    fontWeight: FontWeight.bold,
+  ),
 );
 
-// Style for subheadings
+// Style for subheadings/ text
 final subHeadingStyle = GoogleFonts.openSans(
-  textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+  textStyle: const TextStyle(
+    color: black,
+    fontSize: 16,
+    fontWeight: FontWeight.bold,
+  ),
 );
 
 // Style for input fields
 final inputFieldStyle = GoogleFonts.openSans(
-  textStyle: TextStyle(
-    color: Colors.black,
-    fontSize: 20,
-    fontWeight: FontWeight.bold,
-  ),
+  textStyle: TextStyle(color: black, fontSize: 20, fontWeight: FontWeight.bold),
 );
 
 // Style for segmented buttons
@@ -45,13 +50,8 @@ final segButtonStyle = ButtonStyle(
   shape: WidgetStateProperty.all(
     RoundedRectangleBorder(borderRadius: kBorderRadius, side: kBorderSide),
   ),
-  textStyle: WidgetStateProperty.all(
-    TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.bold),
-  ),
+  textStyle: WidgetStateProperty.all(subHeadingStyle),
 );
-
-// Style for output values for dialog
-const outputValueStyle = TextStyle(fontSize: 16, fontWeight: FontWeight.bold);
 
 // Padding for widgets
 const kPadding = EdgeInsets.all(32);
@@ -60,7 +60,7 @@ const kPadding = EdgeInsets.all(32);
 const kBorderRadius = BorderRadius.all(Radius.circular(32));
 
 // Border side for widgets
-const kBorderSide = BorderSide(color: Colors.black, width: 3);
+const kBorderSide = BorderSide(color: black, width: 3);
 
 // Border for input fields
 const inputBorder = OutlineInputBorder(
@@ -76,6 +76,7 @@ const kShadow = BoxShadow(
   blurStyle: BlurStyle.solid,
 );
 
+// Build app bar
 AppBar buildAppBar(BuildContext context) {
   return AppBar(
     toolbarHeight: 80,

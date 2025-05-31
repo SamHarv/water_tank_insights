@@ -1,14 +1,15 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:water_tank_insights/logic/services/url_launcher.dart';
-import 'package:water_tank_insights/ui/widgets/constrained_width_widget.dart';
-import 'package:water_tank_insights/ui/widgets/input_field_widget.dart';
 
+import '/logic/services/url_launcher.dart';
+import '/ui/widgets/constrained_width_widget.dart';
+import '/ui/widgets/input_field_widget.dart';
 import '../../config/constants.dart';
 import 'output_view.dart';
 
 class WaterUsageView extends StatefulWidget {
+  /// [WaterUsageView] to determine household water usage
   const WaterUsageView({super.key});
 
   @override
@@ -64,10 +65,10 @@ class _WaterUsageViewState extends State<WaterUsageView> {
       // Add listener for auto-save after loading data
       _addListener();
     } catch (e) {
-      print('Error loading water usage data: $e');
       setState(() {
         isLoading = false;
       });
+      throw 'Error loading water usage data: $e';
     }
   }
 
@@ -105,7 +106,7 @@ class _WaterUsageViewState extends State<WaterUsageView> {
         json.encode(personWaterUsageList),
       );
     } catch (e) {
-      print('Error saving water usage data: $e');
+      throw 'Error saving water usage data: $e';
     }
   }
 
@@ -185,29 +186,7 @@ class _WaterUsageViewState extends State<WaterUsageView> {
     // Show loading spinner while data is being loaded
     if (isLoading) {
       return Scaffold(
-        appBar: AppBar(
-          toolbarHeight: 80,
-          backgroundColor: Colors.transparent,
-          automaticallyImplyLeading: true,
-          leadingWidth: 80,
-          leading: IconButton(
-            icon: Padding(
-              padding: EdgeInsets.fromLTRB(24, 12, 32, 12),
-              child: Icon(Icons.arrow_back_ios_new),
-            ),
-            color: white,
-            onPressed: () => Navigator.pop(context),
-          ),
-          actions: [
-            Hero(
-              tag: "logo",
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(0, 12, 48, 12),
-                child: Image.asset(logo),
-              ),
-            ),
-          ],
-        ),
+        appBar: buildAppBar(context),
         body: Center(child: CircularProgressIndicator(color: white)),
       );
     }
@@ -327,6 +306,7 @@ class _WaterUsageViewState extends State<WaterUsageView> {
                                 ),
                               ),
                               SizedBox(height: 12),
+
                               // TODO: Allow option for manual input - 0-1500
                               SegmentedButton<int>(
                                 style: segButtonStyle,

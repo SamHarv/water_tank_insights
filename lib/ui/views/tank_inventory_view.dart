@@ -1,16 +1,17 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:water_tank_insights/logic/tank_volume_calculator.dart';
-import 'package:water_tank_insights/ui/views/water_usage_view.dart';
-import 'package:water_tank_insights/ui/widgets/constrained_width_widget.dart';
-import 'package:water_tank_insights/ui/widgets/input_field_widget.dart';
 
+import '/logic/tank_volume_calculator.dart';
+import 'water_usage_view.dart';
+import '/ui/widgets/constrained_width_widget.dart';
+import '/ui/widgets/input_field_widget.dart';
 import '../../config/constants.dart';
 import '../../data/models/tank_model.dart';
 import 'roof_catchment_view.dart';
 
 class TankInventoryView extends StatefulWidget {
+  /// [TankInventoryView] to input the user's tanks and their inventory
   const TankInventoryView({super.key});
 
   @override
@@ -37,11 +38,6 @@ class _TankInventoryViewState extends State<TankInventoryView> {
   static const String _tanksKey = 'tanks_data';
   static const String _tankCountKey = 'tank_count';
   static const String _tankStatesKey = 'tank_states';
-
-  // Roof catchment keys for clearing when no tanks
-  static const String _knowRoofCatchmentKey = 'know_roof_catchment';
-  static const String _roofCatchmentAreaKey = 'roof_catchment_area';
-  static const String _otherIntakeKey = 'other_intake';
 
   // Loading state to prevent premature UI builds
   bool isLoading = true;
@@ -129,22 +125,6 @@ class _TankInventoryViewState extends State<TankInventoryView> {
       setState(() {
         isLoading = false;
       });
-    }
-  }
-
-  // Clear roof catchment data when user has 0 tanks
-  Future<void> _clearRoofCatchmentData() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-
-      // Remove all roof catchment related data
-      await prefs.remove(_knowRoofCatchmentKey);
-      await prefs.remove(_roofCatchmentAreaKey);
-      await prefs.remove(_otherIntakeKey);
-
-      print('Cleared roof catchment data since user has 0 tanks');
-    } catch (e) {
-      print('Error clearing roof catchment data: $e');
     }
   }
 
@@ -283,11 +263,6 @@ class _TankInventoryViewState extends State<TankInventoryView> {
 
       _addListeners();
     });
-
-    // Clear roof catchment data if user has 0 tanks
-    if (newCount == 0) {
-      await _clearRoofCatchmentData();
-    }
 
     _saveData(); // Save data
   }
@@ -436,19 +411,19 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                 children: [
                   Text(
                     'Total Capacity: ${totalCapacity.toInt()} L',
-                    style: outputValueStyle,
+                    style: subHeadingStyle,
                   ),
                   Text(
                     'Total Inventory: ${totalInventory.toInt()} L',
-                    style: outputValueStyle,
+                    style: subHeadingStyle,
                   ),
                   Text(
                     'Available Space: ${(totalCapacity - totalInventory).toInt()} L',
-                    style: outputValueStyle,
+                    style: subHeadingStyle,
                   ),
                   Text(
                     'Fill Percentage: ${totalCapacity > 0 ? ((totalInventory / totalCapacity) * 100).toStringAsFixed(1) : "0.0"}%',
-                    style: outputValueStyle,
+                    style: subHeadingStyle,
                   ),
                   SizedBox(height: 16),
                   // Display results for each tank
@@ -496,9 +471,6 @@ class _TankInventoryViewState extends State<TankInventoryView> {
     tankStates.clear();
     tankControllers.clear();
 
-    // Clear roof catchment data since no tanks
-    await _clearRoofCatchmentData();
-
     // Save the cleared state
     await _saveData();
 
@@ -528,57 +500,13 @@ class _TankInventoryViewState extends State<TankInventoryView> {
     // Show loading spinner while data is being loaded
     if (isLoading) {
       return Scaffold(
-        appBar: AppBar(
-          toolbarHeight: 80,
-          backgroundColor: Colors.transparent,
-          automaticallyImplyLeading: true,
-          leadingWidth: 80,
-          leading: IconButton(
-            icon: Padding(
-              padding: EdgeInsets.fromLTRB(24, 12, 32, 12),
-              child: Icon(Icons.arrow_back_ios_new),
-            ),
-            color: white,
-            onPressed: () => Navigator.pop(context), // Back to prev view
-          ),
-          actions: [
-            Hero(
-              tag: "logo",
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(0, 12, 48, 12),
-                child: Image.asset(logo),
-              ),
-            ),
-          ],
-        ),
+        appBar: buildAppBar(context),
         body: Center(child: CircularProgressIndicator(color: white)),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 80,
-        backgroundColor: Colors.transparent,
-        automaticallyImplyLeading: true,
-        leadingWidth: 80,
-        leading: IconButton(
-          icon: Padding(
-            padding: EdgeInsets.fromLTRB(24, 12, 32, 12),
-            child: Icon(Icons.arrow_back_ios_new),
-          ),
-          color: white,
-          onPressed: () => Navigator.pop(context), // Back to prev view
-        ),
-        actions: [
-          Hero(
-            tag: "logo",
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(0, 12, 48, 12),
-              child: Image.asset(logo),
-            ),
-          ),
-        ],
-      ),
+      appBar: buildAppBar(context),
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
@@ -651,8 +579,6 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                             setState(() {
                               isPressed = false;
                             });
-                            // TODO: ensure fields are valid
-                            //
 
                             for (int i = 0; i < numOfTanks; i++) {
                               // Ensure tank data is valid
@@ -806,8 +732,6 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                                     }
                                   }
                                 }
-
-                                // "waterHeight (m)" "waterLevel (litres)"
                               }
                             }
 

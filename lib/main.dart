@@ -1,11 +1,6 @@
-// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:water_tank_insights/data/postcodes.dart';
-import 'package:water_tank_insights/logic/services/postcode_service.dart';
-import 'package:water_tank_insights/logic/services/supabase_service.dart';
-import 'package:water_tank_insights/ui/views/api_demo.dart';
 
 import 'config/constants.dart';
 import 'ui/views/home_view.dart';
@@ -14,12 +9,6 @@ import 'ui/views/home_view.dart';
 
 /// [main] function is entry point of the app
 void main() async {
-  // Ensure Flutter is initialized
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // Initialize Supabase
-  await SupabaseService.initialize();
-
   runApp(const WaterTankInsights());
 }
 

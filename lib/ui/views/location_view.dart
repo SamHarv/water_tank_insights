@@ -1,15 +1,20 @@
-// lib/ui/views/location_view.dart
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:water_tank_insights/ui/views/tank_inventory_view.dart';
-import 'package:water_tank_insights/ui/widgets/constrained_width_widget.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 import '../../config/constants.dart';
 import '../../data/api/rainfall_api.dart';
+import '../../data/database/database_service.dart';
+import '../../data/models/rainfall_record_model.dart';
 import '../../logic/services/postcode_service.dart';
+import '/ui/views/tank_inventory_view.dart';
+import '/ui/widgets/constrained_width_widget.dart';
 
 class LocationView extends StatefulWidget {
+  /// [LocationView] allows the user to select their location via postcode and
+  /// look at historical rainfall data for that location
   const LocationView({super.key});
 
   @override
@@ -19,8 +24,11 @@ class LocationView extends StatefulWidget {
 class _LocationViewState extends State<LocationView> {
   // Button state for press animation
   bool isPressed = false;
+  // Default to current year
   double yearSelected = DateTime.now().year.toDouble();
+  // Default to "Monthly" for chart display
   String timePeriod = "Monthly";
+  // Postcode selection to choose location
   String? selectedPostcode;
 
   // Chart data
@@ -30,8 +38,7 @@ class _LocationViewState extends State<LocationView> {
   String? chartError;
 
   // Instant access to hardcoded postcodes
-  List<PostcodeInfo> availablePostcodes =
-      PostcodesService.getAvailablePostcodeInfos();
+  List<String> availablePostcodes = PostcodesService.getAvailablePostcodes();
 
   // SharedPreferences keys
   static const String _postcodeKey = 'selected_postcode';
@@ -65,9 +72,9 @@ class _LocationViewState extends State<LocationView> {
   Future<void> _loadChartData() async {
     if (selectedPostcode == null) return;
 
-    // Enforce reasonable year limits (API might not have very old data)
+    // Limit years to 1975-current
     final constrainedYear = yearSelected.toInt().clamp(
-      1990,
+      1975,
       DateTime.now().year,
     );
 
@@ -77,18 +84,12 @@ class _LocationViewState extends State<LocationView> {
     });
 
     try {
-      print(
-        'Loading data for postcode: $selectedPostcode, year: $constrainedYear',
-      );
-
       // Fetch rainfall data from API
       final List<RainfallRecord> rainfallRecords =
           await RainfallApiService.getRainfallData(
             postcode: selectedPostcode!,
             year: constrainedYear,
           );
-
-      print('Received ${rainfallRecords.length} records from API');
 
       if (timePeriod == "Monthly") {
         // Convert API data to monthly rainfall
@@ -113,7 +114,6 @@ class _LocationViewState extends State<LocationView> {
         });
       }
     } catch (e) {
-      print('Error loading chart data: $e');
       setState(() {
         chartError = 'Failed to load rainfall data: ${e.toString()}';
         isLoadingChart = false;
@@ -160,7 +160,7 @@ class _LocationViewState extends State<LocationView> {
   // Updated _buildRainfallChart method for location_view.dart
   Widget _buildRainfallChart() {
     if (isLoadingChart) {
-      return Container(
+      return SizedBox(
         height: 200,
         child: Center(
           child: Column(
@@ -179,7 +179,7 @@ class _LocationViewState extends State<LocationView> {
     }
 
     if (chartError != null) {
-      return Container(
+      return SizedBox(
         height: 200,
         child: Center(
           child: Column(
@@ -238,7 +238,7 @@ class _LocationViewState extends State<LocationView> {
       return _buildAnnualChart();
     }
 
-    return Container(
+    return SizedBox(
       height: 200,
       child: Center(
         child: Column(
@@ -256,14 +256,14 @@ class _LocationViewState extends State<LocationView> {
     );
   }
 
-  // Add this new method to show a no-data message
+  // Show no data message
   Widget _buildNoDataMessage() {
     final constrainedYear = yearSelected.toInt().clamp(
-      1990,
+      1975,
       DateTime.now().year,
     );
 
-    return Container(
+    return SizedBox(
       height: 200,
       child: Center(
         child: Column(
@@ -289,6 +289,7 @@ class _LocationViewState extends State<LocationView> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                // Try again
                 ElevatedButton.icon(
                   onPressed: _loadChartData,
                   icon: Icon(Icons.refresh),
@@ -299,6 +300,7 @@ class _LocationViewState extends State<LocationView> {
                   ),
                 ),
                 SizedBox(width: 8),
+                // Try current year
                 TextButton(
                   onPressed: () {
                     setState(() {
@@ -326,7 +328,7 @@ class _LocationViewState extends State<LocationView> {
     // If all values are 0, set a default max to avoid division by zero
     final maxY = maxValue > 0 ? maxValue * 1.2 : 10.0;
 
-    return Container(
+    return SizedBox(
       height: 200,
       child: BarChart(
         BarChartData(
@@ -351,12 +353,15 @@ class _LocationViewState extends State<LocationView> {
                 showTitles: true,
                 getTitlesWidget: (value, meta) {
                   if (value.toInt() < monthlyRainfallData!.length) {
-                    return Text(
-                      monthlyRainfallData![value.toInt()].monthName,
-                      style: TextStyle(
-                        color: black,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                    return Transform.rotate(
+                      angle: -90 / 180 * math.pi,
+                      child: Text(
+                        monthlyRainfallData![value.toInt()].monthName,
+                        style: TextStyle(
+                          color: black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
                       ),
                     );
                   }
@@ -408,7 +413,7 @@ class _LocationViewState extends State<LocationView> {
                     BarChartRodData(
                       toY: entry.value.totalRainfall,
                       color: blue,
-                      width: 20,
+                      width: 15,
                       borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(6),
                         topRight: Radius.circular(6),
@@ -425,11 +430,11 @@ class _LocationViewState extends State<LocationView> {
   // Build annual summary chart
   Widget _buildAnnualChart() {
     final constrainedYear = yearSelected.toInt().clamp(
-      1990,
+      1975,
       DateTime.now().year,
     );
 
-    return Container(
+    return SizedBox(
       height: 200,
       child: Center(
         child: Column(
@@ -468,36 +473,16 @@ class _LocationViewState extends State<LocationView> {
 
   @override
   Widget build(BuildContext context) {
+    // Width of screen
     final mediaWidth = MediaQuery.sizeOf(context).width;
+    // Limit years to 1975-current
     final constrainedYear = yearSelected.toInt().clamp(
-      1990,
+      1975,
       DateTime.now().year,
     );
 
     return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 80,
-        backgroundColor: Colors.transparent,
-        automaticallyImplyLeading: true,
-        leadingWidth: 80,
-        leading: IconButton(
-          icon: Padding(
-            padding: EdgeInsets.fromLTRB(24, 12, 32, 12),
-            child: Icon(Icons.arrow_back_ios_new),
-          ),
-          color: white,
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          Hero(
-            tag: "logo",
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(0, 12, 48, 12),
-              child: Image.asset(logo),
-            ),
-          ),
-        ],
-      ),
+      appBar: buildAppBar(context),
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
@@ -520,12 +505,15 @@ class _LocationViewState extends State<LocationView> {
                     child: DropdownMenu<String>(
                       width: mediaWidth * 0.8,
                       initialSelection: selectedPostcode,
+                      requestFocusOnTap:
+                          true, // allow typing on mobile for filter
                       dropdownMenuEntries:
+                          // All postcodes
                           availablePostcodes
                               .map(
-                                (pc) => DropdownMenuEntry(
-                                  value: pc.postcode,
-                                  label: pc.postcode,
+                                (postcode) => DropdownMenuEntry<String>(
+                                  label: postcode.toString(),
+                                  value: postcode.toString(),
                                 ),
                               )
                               .toList(),
@@ -554,11 +542,12 @@ class _LocationViewState extends State<LocationView> {
                       textStyle: inputFieldStyle,
                       enableFilter: true,
                       hintText:
-                          "Select postcode (${PostcodesService.count} available)",
+                          "Select postcode (${PostcodesService.length} available)",
                       onSelected: (postcode) {
                         setState(() {
                           selectedPostcode = postcode;
                         });
+                        // Save data
                         _saveData();
                         // Load data after postcode is selected
                         _loadChartData();
@@ -583,7 +572,7 @@ class _LocationViewState extends State<LocationView> {
                           secondaryActiveColor: white,
                           thumbColor: white,
                           min:
-                              1990.toDouble(), // Adjusted for API data availability
+                              1975.toDouble(), // Adjusted for API data availability
                           max: DateTime.now().year.toDouble(),
                           onChanged: (value) {
                             setState(() {
@@ -629,7 +618,9 @@ class _LocationViewState extends State<LocationView> {
                                         selectedPostcode!,
                                         style: TextStyle(fontSize: 12),
                                       ),
-                                      backgroundColor: blue.withOpacity(0.1),
+                                      backgroundColor: blue.withValues(
+                                        alpha: 0.1,
+                                      ),
                                     ),
                                   ),
                               ],
@@ -700,7 +691,7 @@ class _LocationViewState extends State<LocationView> {
                           });
                         });
 
-                        _saveData();
+                        _saveData(); // save
 
                         Navigator.push(
                           context,
@@ -734,31 +725,5 @@ class _LocationViewState extends State<LocationView> {
         ),
       ),
     );
-  }
-}
-
-// Simple data model for monthly rainfall (matching your existing structure)
-class MonthlyRainfall {
-  final int month;
-  final double totalRainfall;
-
-  MonthlyRainfall({required this.month, required this.totalRainfall});
-
-  String get monthName {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return months[month - 1];
   }
 }

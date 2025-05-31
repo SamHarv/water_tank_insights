@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:water_tank_insights/ui/widgets/constrained_width_widget.dart';
 
 import '../../config/constants.dart';
@@ -47,13 +48,22 @@ class _DisclaimerViewState extends State<DisclaimerView> {
                           children: [
                             Text("Disclaimer", style: headingStyle),
                             Text(
+                              "Estimate how many days of water inventory you have "
+                              "in your water tank based on current inventory, "
+                              "predicted rainfall, and estimated water usage to "
+                              "better manage your supply.",
+                              style: subHeadingStyle,
+                            ),
+                            Text(
                               "This tool uses calculations to estimate water "
                               "intake and usage, and may not reflect actual "
                               "intake and usage. Results should not be relied "
                               "upon for critical decisions without "
                               "professional advice. Data entered into this app "
                               "will be stored on your device and kept private.",
-                              style: subHeadingStyle,
+                              style: GoogleFonts.openSans(
+                                textStyle: TextStyle(fontSize: 16),
+                              ),
                             ),
                           ],
                         ),

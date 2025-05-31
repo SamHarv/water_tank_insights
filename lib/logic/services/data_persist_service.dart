@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../data/models/tank_model.dart';
 
+// TODO: add all data persistence operations
 class DataPersistService {
   // SharedPreferences keys
   static const String _tanksKey = 'tanks_data';

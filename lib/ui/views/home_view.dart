@@ -92,10 +92,8 @@ class _HomeViewState extends State<HomeView> {
                     child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Text(
-                        "Estimate how many days of water inventory you have "
-                        "in your water tank based on current inventory, "
-                        "predicted rainfall, and estimated water usage to "
-                        "better manage your supply.",
+                        "Helping communities conserve precious water through "
+                        "predictive modelling and education.",
                         // textAlign: TextAlign.center,
                         style: subHeadingStyle,
                       ),
