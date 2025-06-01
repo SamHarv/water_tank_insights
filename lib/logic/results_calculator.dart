@@ -1,7 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'dart:math' as math;
 import '../data/database/database_service.dart';
-import '../logic/water_intake_calculator.dart';
 
 class ResultsCalculator {
   /// [ResultsCalculator] calculates water balance and days remaining
@@ -15,7 +15,7 @@ class ResultsCalculator {
 
   /// Calculate days remaining based on current scenario
   static Future<Map<String, dynamic>> calculateDaysRemaining({
-    String rainfallScenario = "10-year average",
+    String rainfallScenario = "10-year median",
     double perPersonUsage = 200.0,
   }) async {
     try {
@@ -85,42 +85,66 @@ class ResultsCalculator {
     }
   }
 
-  /// Get monthly water intake based on rainfall scenario
-  static Future<Map<String, double>> _getMonthlyWaterIntake(
-    String scenario,
-  ) async {
+  /// Calculate median from a list of numbers
+  static double _calculateMedian(List<double> values) {
+    if (values.isEmpty) return 0.0;
+
+    final sortedValues = List<double>.from(values)..sort();
+    final length = sortedValues.length;
+
+    if (length % 2 == 0) {
+      // Even number of values - average of two middle values
+      return (sortedValues[length ~/ 2 - 1] + sortedValues[length ~/ 2]) / 2;
+    } else {
+      // Odd number of values - middle value
+      return sortedValues[length ~/ 2];
+    }
+  }
+
+  /// Get historical rainfall statistics (min, median, max) for each month
+  static Future<Map<String, Map<String, double>>>
+  _getHistoricalRainfallStats() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final postcode = prefs.getString(_postcodeKey) ?? "5000";
-      final roofCatchmentStr = prefs.getString(_roofCatchmentAreaKey) ?? "100";
-      final otherIntakeStr = prefs.getString(_otherIntakeKey) ?? "0";
-
-      // Parse roof catchment area
-      final roofCatchmentArea = double.tryParse(roofCatchmentStr) ?? 100.0;
-      final otherIntakeDailyL = double.tryParse(otherIntakeStr) ?? 0.0;
 
       // Get rainfall data directly from database service
       final dbService = DatabaseService();
       final currentYear = DateTime.now().year;
 
-      // Calculate average monthly rainfall over last 10 years
-      Map<String, double> avgMonthlyRainfall = {
-        'Jan': 0,
-        'Feb': 0,
-        'Mar': 0,
-        'Apr': 0,
-        'May': 0,
-        'Jun': 0,
-        'Jul': 0,
-        'Aug': 0,
-        'Sep': 0,
-        'Oct': 0,
-        'Nov': 0,
-        'Dec': 0,
+      // Initialize stats structure
+      Map<String, Map<String, double>> monthlyStats = {
+        'Jan': {'min': 0.0, 'median': 0.0, 'max': 0.0},
+        'Feb': {'min': 0.0, 'median': 0.0, 'max': 0.0},
+        'Mar': {'min': 0.0, 'median': 0.0, 'max': 0.0},
+        'Apr': {'min': 0.0, 'median': 0.0, 'max': 0.0},
+        'May': {'min': 0.0, 'median': 0.0, 'max': 0.0},
+        'Jun': {'min': 0.0, 'median': 0.0, 'max': 0.0},
+        'Jul': {'min': 0.0, 'median': 0.0, 'max': 0.0},
+        'Aug': {'min': 0.0, 'median': 0.0, 'max': 0.0},
+        'Sep': {'min': 0.0, 'median': 0.0, 'max': 0.0},
+        'Oct': {'min': 0.0, 'median': 0.0, 'max': 0.0},
+        'Nov': {'min': 0.0, 'median': 0.0, 'max': 0.0},
+        'Dec': {'min': 0.0, 'median': 0.0, 'max': 0.0},
       };
 
-      // Get 10 years of data for averaging
-      int validYears = 0;
+      // Collect rainfall data by month across all years
+      Map<String, List<double>> monthlyRainfallData = {
+        'Jan': [],
+        'Feb': [],
+        'Mar': [],
+        'Apr': [],
+        'May': [],
+        'Jun': [],
+        'Jul': [],
+        'Aug': [],
+        'Sep': [],
+        'Oct': [],
+        'Nov': [],
+        'Dec': [],
+      };
+
+      // Get 10 years of data
       for (int year = currentYear - 9; year <= currentYear; year++) {
         try {
           final monthlyData = await dbService.getMonthlyRainfall(
@@ -131,33 +155,91 @@ class ResultsCalculator {
 
           for (final monthData in monthlyData) {
             final monthName = _getMonthName(monthData.month);
-            avgMonthlyRainfall[monthName] =
-                (avgMonthlyRainfall[monthName]! + monthData.totalRainfall);
+            monthlyRainfallData[monthName]!.add(monthData.totalRainfall);
           }
-          validYears++;
         } catch (e) {
           print('Failed to get data for year $year: $e');
           // Continue with other years
         }
       }
 
-      // Calculate averages (only if we got some data)
-      if (validYears > 0) {
-        avgMonthlyRainfall.forEach((month, total) {
-          avgMonthlyRainfall[month] = total / validYears;
-        });
-      }
+      // Calculate statistics for each month
+      monthlyRainfallData.forEach((month, rainfallValues) {
+        if (rainfallValues.isNotEmpty) {
+          rainfallValues.sort();
+          monthlyStats[month] = {
+            'min': rainfallValues.first,
+            'median': _calculateMedian(rainfallValues),
+            'max': rainfallValues.last,
+          };
+        }
+      });
 
-      // Apply scenario multiplier
-      final multiplier = _getScenarioMultiplier(scenario);
+      return monthlyStats;
+    } catch (e) {
+      print('Error getting historical rainfall stats: $e');
+      // Return empty stats if error occurs
+      return {
+        'Jan': {'min': 0.0, 'median': 0.0, 'max': 0.0},
+        'Feb': {'min': 0.0, 'median': 0.0, 'max': 0.0},
+        'Mar': {'min': 0.0, 'median': 0.0, 'max': 0.0},
+        'Apr': {'min': 0.0, 'median': 0.0, 'max': 0.0},
+        'May': {'min': 0.0, 'median': 0.0, 'max': 0.0},
+        'Jun': {'min': 0.0, 'median': 0.0, 'max': 0.0},
+        'Jul': {'min': 0.0, 'median': 0.0, 'max': 0.0},
+        'Aug': {'min': 0.0, 'median': 0.0, 'max': 0.0},
+        'Sep': {'min': 0.0, 'median': 0.0, 'max': 0.0},
+        'Oct': {'min': 0.0, 'median': 0.0, 'max': 0.0},
+        'Nov': {'min': 0.0, 'median': 0.0, 'max': 0.0},
+        'Dec': {'min': 0.0, 'median': 0.0, 'max': 0.0},
+      };
+    }
+  }
 
-      // Convert rainfall to water intake
+  /// Get monthly water intake based on rainfall scenario
+  static Future<Map<String, double>> _getMonthlyWaterIntake(
+    String scenario,
+  ) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final roofCatchmentStr = prefs.getString(_roofCatchmentAreaKey) ?? "100";
+      final otherIntakeStr = prefs.getString(_otherIntakeKey) ?? "0";
+
+      // Parse roof catchment area
+      final roofCatchmentArea = double.tryParse(roofCatchmentStr) ?? 100.0;
+      final otherIntakeDailyL = double.tryParse(otherIntakeStr) ?? 0.0;
+
+      // Get historical rainfall statistics
+      final rainfallStats = await _getHistoricalRainfallStats();
+
+      // Convert rainfall to water intake based on scenario
       Map<String, double> monthlyIntake = {};
-      avgMonthlyRainfall.forEach((month, rainfallMm) {
+      final currentYear = DateTime.now().year;
+
+      rainfallStats.forEach((month, stats) {
+        double rainfallMm;
+
+        // Select rainfall value based on scenario
+        switch (scenario) {
+          case "No Rainfall":
+            rainfallMm = 0.0;
+            break;
+          case "Lowest recorded":
+            rainfallMm = stats['min']!;
+            break;
+          case "10-year median":
+            rainfallMm = stats['median']!;
+            break;
+          case "Highest recorded":
+            rainfallMm = stats['max']!;
+            break;
+          default:
+            rainfallMm = stats['median']!; // Default to median
+        }
+
         // Calculate water collection: rainfall (mm) * catchment area (m²) * collection efficiency (95%)
         // 1mm of rain on 1m² = 1 liter, so: mm * m² * 0.95 = liters
-        final collectedWaterL =
-            rainfallMm * roofCatchmentArea * 0.95 * multiplier;
+        final collectedWaterL = rainfallMm * roofCatchmentArea * 0.95;
 
         // Add other daily intake sources (converted to monthly)
         final daysInMonth = _getDaysInMonth(month, currentYear);
@@ -240,22 +322,6 @@ class ResultsCalculator {
   /// Check if year is a leap year
   static bool _isLeapYear(int year) {
     return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
-  }
-
-  /// Get rainfall scenario multiplier
-  static double _getScenarioMultiplier(String scenario) {
-    switch (scenario) {
-      case "No Rainfall":
-        return 0.0;
-      case "Lowest recorded":
-        return 0.3; // 30% of average
-      case "10-year average":
-        return 1.0; // 100% of average
-      case "Highest recorded":
-        return 1.8; // 180% of average
-      default:
-        return 1.0;
-    }
   }
 
   /// Calculate water balance and determine days remaining
@@ -459,7 +525,7 @@ class ResultsCalculator {
     }
   }
 
-  /// Debug method to check rainfall calculations
+  /// Debug method to check rainfall calculations with enhanced statistics
   static Future<Map<String, dynamic>> debugRainfallCalculations() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -470,41 +536,73 @@ class ResultsCalculator {
       final roofCatchmentArea = double.tryParse(roofCatchmentStr) ?? 100.0;
       final otherIntakeDailyL = double.tryParse(otherIntakeStr) ?? 0.0;
 
-      // Get rainfall data for current year
-      final dbService = DatabaseService();
-      final currentYear = DateTime.now().year;
+      // Get historical rainfall statistics
+      final rainfallStats = await _getHistoricalRainfallStats();
 
-      final monthlyData = await dbService.getMonthlyRainfall(
-        postcode: postcode,
-        year: currentYear,
-        useCache: false, // Force fresh data
-      );
+      Map<String, Map<String, double>> intakeDebug = {};
 
-      Map<String, double> rainfallDebug = {};
-      Map<String, double> intakeDebug = {};
+      rainfallStats.forEach((month, stats) {
+        final medianRainfall = stats['median']!;
+        final minRainfall = stats['min']!;
+        final maxRainfall = stats['max']!;
 
-      for (final monthData in monthlyData) {
-        final monthName = _getMonthName(monthData.month);
-        final rainfallMm = monthData.totalRainfall;
-        final collectedWaterL = rainfallMm * roofCatchmentArea * 0.95;
+        final medianIntakeL = medianRainfall * roofCatchmentArea * 0.95;
+        final minIntakeL = minRainfall * roofCatchmentArea * 0.95;
+        final maxIntakeL = maxRainfall * roofCatchmentArea * 0.95;
 
-        rainfallDebug[monthName] = rainfallMm;
-        intakeDebug[monthName] = collectedWaterL;
-      }
+        intakeDebug[month] = {
+          'median': medianIntakeL,
+          'min': minIntakeL,
+          'max': maxIntakeL,
+        };
+      });
 
       return {
         'postcode': postcode,
         'roofCatchmentArea': roofCatchmentArea,
         'otherIntakeDailyL': otherIntakeDailyL,
-        'currentYear': currentYear,
-        'rainfallByMonth': rainfallDebug,
-        'waterIntakeByMonth': intakeDebug,
+        'currentYear': DateTime.now().year,
+        'rainfallStatsByMonth': rainfallStats,
+        'waterIntakeStatsByMonth': intakeDebug,
         'hasRoofCatchmentData':
             roofCatchmentStr.isNotEmpty && roofCatchmentArea > 0,
-        'hasRainfallData': rainfallDebug.values.any((r) => r > 0),
+        'hasRainfallData': rainfallStats.values.any(
+          (stats) =>
+              stats['median']! > 0 || stats['min']! > 0 || stats['max']! > 0,
+        ),
       };
     } catch (e) {
       return {'error': e.toString()};
+    }
+  }
+
+  /// Get available rainfall scenarios based on historical data
+  static Future<List<String>> getAvailableScenarios() async {
+    try {
+      final rainfallStats = await _getHistoricalRainfallStats();
+
+      // Check if we have any meaningful data
+      final hasData = rainfallStats.values.any(
+        (stats) =>
+            stats['median']! > 0 || stats['min']! > 0 || stats['max']! > 0,
+      );
+
+      if (hasData) {
+        return [
+          "No Rainfall",
+          "Lowest recorded",
+          "10-year median",
+          "Highest recorded",
+        ];
+      } else {
+        // If no historical data, only offer basic scenarios
+        return [
+          "No Rainfall",
+          "10-year median", // Will default to 0 if no data
+        ];
+      }
+    } catch (e) {
+      return ["No Rainfall", "10-year median"];
     }
   }
 }

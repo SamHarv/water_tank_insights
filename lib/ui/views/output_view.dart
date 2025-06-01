@@ -30,7 +30,7 @@ class _OutputViewState extends State<OutputView> {
   Map<String, dynamic> tankSummary = {};
 
   // User inputs
-  String selectedRainfall = "10-year average";
+  String selectedRainfall = "10-year median";
   double perPersonUsage = 200.0;
 
   // Loading state
@@ -79,76 +79,6 @@ class _OutputViewState extends State<OutputView> {
     }
   }
 
-  Future<void> _showDebugInfo() async {
-    try {
-      final debugInfo = await ResultsCalculator.debugRainfallCalculations();
-
-      showDialog(
-        context: context,
-        builder:
-            (context) => AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: kBorderRadius,
-                side: kBorderSide,
-              ),
-              title: Text('Rainfall Debug Info', style: subHeadingStyle),
-              content: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('Postcode: ${debugInfo['postcode']}'),
-                    Text('Roof Catchment: ${debugInfo['roofCatchmentArea']}m²'),
-                    Text(
-                      'Other Intake: ${debugInfo['otherIntakeDailyL']}L/day',
-                    ),
-                    Text('Has Roof Data: ${debugInfo['hasRoofCatchmentData']}'),
-                    Text('Has Rainfall Data: ${debugInfo['hasRainfallData']}'),
-                    SizedBox(height: 16),
-                    Text(
-                      'Current Year Rainfall (mm):',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    if (debugInfo['rainfallByMonth'] != null)
-                      ...debugInfo['rainfallByMonth'].entries.map(
-                        (entry) => Text(
-                          '${entry.key}: ${entry.value.toStringAsFixed(1)}mm',
-                        ),
-                      ),
-                    SizedBox(height: 16),
-                    Text(
-                      'Monthly Water Intake (L):',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    if (debugInfo['waterIntakeByMonth'] != null)
-                      ...debugInfo['waterIntakeByMonth'].entries.map(
-                        (entry) => Text(
-                          '${entry.key}: ${entry.value.toStringAsFixed(1)}L',
-                        ),
-                      ),
-                    if (debugInfo['error'] != null)
-                      Text(
-                        'Error: ${debugInfo['error']}',
-                        style: TextStyle(color: Colors.red),
-                      ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  child: Text("Close"),
-                ),
-              ],
-            ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Debug error: $e')));
-    }
-  }
-
   Widget _buildProjectionChart() {
     if (projectedData.isEmpty) {
       return Container(
@@ -168,7 +98,7 @@ class _OutputViewState extends State<OutputView> {
         .reduce((a, b) => a > b ? a : b);
     final maxY = maxLevel > 0 ? maxLevel * 1.2 : 1000.0;
 
-    return Container(
+    return SizedBox(
       height: 250,
       child: LineChart(
         LineChartData(
@@ -253,8 +183,10 @@ class _OutputViewState extends State<OutputView> {
                 show: true,
                 gradient: LinearGradient(
                   colors: [
-                    blue.withOpacity(0.3),
-                    (isIncreasing ? Colors.green : Colors.red).withOpacity(0.1),
+                    blue.withValues(alpha: 0.3),
+                    (isIncreasing ? Colors.green : Colors.red).withValues(
+                      alpha: 0.1,
+                    ),
                   ],
                 ),
               ),
@@ -293,9 +225,9 @@ class _OutputViewState extends State<OutputView> {
           child: Container(
             padding: EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: daysLeft < 30 ? Colors.red.shade50 : Colors.green.shade50,
+              color: !isIncreasing ? Colors.red.shade50 : Colors.green.shade50,
               border: Border.all(
-                color: daysLeft < 30 ? Colors.red : Colors.green,
+                color: !isIncreasing ? Colors.red : Colors.green,
                 width: 3,
               ),
               borderRadius: kBorderRadius,
@@ -305,11 +237,11 @@ class _OutputViewState extends State<OutputView> {
                 Icon(
                   daysLeft == -1
                       ? Icons.trending_up
-                      : daysLeft < 30
+                      : !isIncreasing
                       ? Icons.warning
                       : Icons.check_circle,
                   size: 40,
-                  color: daysLeft < 30 ? Colors.red : Colors.green,
+                  color: !isIncreasing ? Colors.red : Colors.green,
                 ),
                 SizedBox(height: 12),
                 Text(
@@ -320,7 +252,7 @@ class _OutputViewState extends State<OutputView> {
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
                     color:
-                        daysLeft < 30
+                        !isIncreasing
                             ? Colors.red.shade800
                             : Colors.green.shade800,
                   ),
@@ -331,7 +263,7 @@ class _OutputViewState extends State<OutputView> {
                   style: TextStyle(
                     fontSize: 14,
                     color:
-                        daysLeft < 30
+                        !isIncreasing
                             ? Colors.red.shade700
                             : Colors.green.shade700,
                   ),
@@ -574,15 +506,15 @@ class _OutputViewState extends State<OutputView> {
                         ),
                         DropdownMenuEntry(
                           value: "Lowest recorded",
-                          label: "Lowest recorded",
+                          label: "Lowest recorded (10 yr)",
                         ),
                         DropdownMenuEntry(
-                          value: "10-year average",
-                          label: "10-year average",
+                          value: "10-year median",
+                          label: "10-year median",
                         ),
                         DropdownMenuEntry(
                           value: "Highest recorded",
-                          label: "Highest recorded",
+                          label: "Highest recorded (10 yr)",
                         ),
                       ],
                       label: Text("Rainfall Pattern", style: inputFieldStyle),
