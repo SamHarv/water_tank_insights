@@ -1,18 +1,10 @@
 import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
-import 'dart:math' as math;
 import '../data/database/database_service.dart';
+import '../../logic/services/data_persist_service.dart';
 
 class ResultsCalculator {
   /// [ResultsCalculator] calculates water balance and days remaining
-
-  static const String _numOfPeopleKey = 'num_of_people';
-  static const String _personWaterUsageListKey = 'person_water_usage_list';
-  static const String _tanksKey = 'tanks_data';
-  static const String _postcodeKey = 'selected_postcode';
-  static const String _roofCatchmentAreaKey = 'roof_catchment_area';
-  static const String _otherIntakeKey = 'other_intake';
+  static final DataPersistService _dataPersistService = DataPersistService();
 
   /// Calculate days remaining based on current scenario
   static Future<Map<String, dynamic>> calculateDaysRemaining({
@@ -20,7 +12,7 @@ class ResultsCalculator {
     double perPersonUsage = 200.0,
   }) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
+      // final prefs = await SharedPreferences.getInstance();
 
       // Get current inventory from tanks
       final currentInventory = await _getCurrentInventory();
@@ -48,16 +40,16 @@ class ResultsCalculator {
   /// Get current water inventory from all tanks
   static Future<int> _getCurrentInventory() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final String? savedTanksData = prefs.getString(_tanksKey);
+      // final prefs = await SharedPreferences.getInstance();
+      // final String? savedTanksData = prefs.getString(_tanksKey);
 
-      if (savedTanksData == null) return 0;
+      final tankData = await _dataPersistService.loadTankData();
+      final tanks = tankData['tanks'] as List;
 
-      final List<dynamic> tankDataList = json.decode(savedTanksData);
       int totalInventory = 0;
 
-      for (var tankData in tankDataList) {
-        final waterLevel = tankData['waterLevel'] ?? 0;
+      for (var tank in tanks) {
+        final waterLevel = tank.waterLevel ?? 0;
         totalInventory += waterLevel as int;
       }
 
@@ -70,16 +62,12 @@ class ResultsCalculator {
   /// Get daily water usage for household
   static Future<double> _getDailyWaterUsage() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final String? savedUsageList = prefs.getString(_personWaterUsageListKey);
-
-      if (savedUsageList == null) return 200.0; // Default
-
-      final List<dynamic> usageData = json.decode(savedUsageList);
-      final List<int> personWaterUsageList = usageData.cast<int>();
+      final waterUsageData = await _dataPersistService.loadWaterUsageData();
+      final personWaterUsageList =
+          waterUsageData['personWaterUsageList'] as List;
 
       return personWaterUsageList
-          .fold(0, (sum, usage) => sum + usage)
+          .fold(0, (sum, usage) => (sum + usage) as int)
           .toDouble();
     } catch (e) {
       return 200.0; // Default fallback
@@ -106,8 +94,9 @@ class ResultsCalculator {
   static Future<Map<String, Map<String, double>>>
   _getHistoricalRainfallStats() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final postcode = prefs.getString(_postcodeKey) ?? "5000";
+      // get postcode from data persist service
+      final locationData = await _dataPersistService.loadLocationData();
+      final postcode = locationData['postcode'] ?? "5000";
 
       // Get rainfall data directly from database service
       final dbService = DatabaseService();
@@ -202,13 +191,15 @@ class ResultsCalculator {
     String scenario,
   ) async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final roofCatchmentStr = prefs.getString(_roofCatchmentAreaKey) ?? "100";
-      final otherIntakeStr = prefs.getString(_otherIntakeKey) ?? "0";
+      final locationData = await _dataPersistService.loadLocationData();
+      final roofCatchmentData =
+          await _dataPersistService.loadRoofCatchmentData();
 
-      // Parse roof catchment area
-      final roofCatchmentArea = double.tryParse(roofCatchmentStr) ?? 100.0;
-      final otherIntakeDailyL = double.tryParse(otherIntakeStr) ?? 0.0;
+      final postcode = locationData['postcode'] ?? "5000";
+      final roofCatchmentArea =
+          double.tryParse(roofCatchmentData['roofCatchmentArea']) ?? 100.0;
+      final otherIntakeDailyL =
+          double.tryParse(roofCatchmentData['otherIntake']) ?? 0.0;
 
       // Get historical rainfall statistics
       final rainfallStats = await _getHistoricalRainfallStats();
@@ -253,9 +244,10 @@ class ResultsCalculator {
     } catch (e) {
       print('Error calculating monthly water intake: $e');
       // Return minimal intake from other sources only
-      final prefs = await SharedPreferences.getInstance();
-      final otherIntakeStr = prefs.getString(_otherIntakeKey) ?? "0";
-      final otherIntakeDailyL = double.tryParse(otherIntakeStr) ?? 0.0;
+      final roofCatchmentData =
+          await _dataPersistService.loadRoofCatchmentData();
+      final otherIntakeDailyL =
+          double.tryParse(roofCatchmentData['otherIntake']) ?? 0.0;
 
       return {
         'Jan': otherIntakeDailyL * 31,
@@ -462,16 +454,12 @@ class ResultsCalculator {
   /// Get total tank capacity
   static Future<int> getTotalTankCapacity() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final String? savedTanksData = prefs.getString(_tanksKey);
+      final tankData = await _dataPersistService.loadTankData();
+      final tanks = tankData['tanks'] as List;
 
-      if (savedTanksData == null) return 0;
-
-      final List<dynamic> tankDataList = json.decode(savedTanksData);
       int totalCapacity = 0;
-
-      for (var tankData in tankDataList) {
-        final capacity = tankData['capacity'] ?? 0;
+      for (var tank in tanks) {
+        final capacity = tank.capacity ?? 0;
         totalCapacity += capacity as int;
       }
 
@@ -484,26 +472,15 @@ class ResultsCalculator {
   /// Get tank usage summary
   static Future<Map<String, dynamic>> getTankSummary() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final String? savedTanksData = prefs.getString(_tanksKey);
+      final tankData = await _dataPersistService.loadTankData();
+      final tanks = tankData['tanks'] as List;
 
-      if (savedTanksData == null) {
-        return {
-          'totalCapacity': 0,
-          'currentInventory': 0,
-          'availableSpace': 0,
-          'fillPercentage': 0.0,
-          'numTanks': 0, // ← Change this
-        };
-      }
-
-      final List<dynamic> tankDataList = json.decode(savedTanksData);
       int totalCapacity = 0;
       int totalInventory = 0;
 
-      for (var tankData in tankDataList) {
-        totalCapacity += (tankData['capacity'] ?? 0) as int;
-        totalInventory += (tankData['waterLevel'] ?? 0) as int;
+      for (var tank in tanks) {
+        totalCapacity += (tank.capacity ?? 0) as int;
+        totalInventory += (tank.waterLevel ?? 0) as int;
       }
 
       final availableSpace = totalCapacity - totalInventory;
@@ -515,7 +492,7 @@ class ResultsCalculator {
         'currentInventory': totalInventory,
         'availableSpace': availableSpace,
         'fillPercentage': fillPercentage,
-        'numTanks': tankDataList.length, // ← Change this
+        'numTanks': tanks.length,
       };
     } catch (e) {
       return {
@@ -523,59 +500,8 @@ class ResultsCalculator {
         'currentInventory': 0,
         'availableSpace': 0,
         'fillPercentage': 0.0,
-        'numTanks': 0, // ← Change this
+        'numTanks': 0,
       };
-    }
-  }
-
-  /// Debug method to check rainfall calculations with enhanced statistics
-  static Future<Map<String, dynamic>> debugRainfallCalculations() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final postcode = prefs.getString(_postcodeKey) ?? "5000";
-      final roofCatchmentStr = prefs.getString(_roofCatchmentAreaKey) ?? "100";
-      final otherIntakeStr = prefs.getString(_otherIntakeKey) ?? "0";
-
-      final roofCatchmentArea = double.tryParse(roofCatchmentStr) ?? 100.0;
-      final otherIntakeDailyL = double.tryParse(otherIntakeStr) ?? 0.0;
-
-      // Get historical rainfall statistics
-      final rainfallStats = await _getHistoricalRainfallStats();
-
-      Map<String, Map<String, double>> intakeDebug = {};
-
-      rainfallStats.forEach((month, stats) {
-        final medianRainfall = stats['median']!;
-        final minRainfall = stats['min']!;
-        final maxRainfall = stats['max']!;
-
-        final medianIntakeL = medianRainfall * roofCatchmentArea * 0.95;
-        final minIntakeL = minRainfall * roofCatchmentArea * 0.95;
-        final maxIntakeL = maxRainfall * roofCatchmentArea * 0.95;
-
-        intakeDebug[month] = {
-          'median': medianIntakeL,
-          'min': minIntakeL,
-          'max': maxIntakeL,
-        };
-      });
-
-      return {
-        'postcode': postcode,
-        'roofCatchmentArea': roofCatchmentArea,
-        'otherIntakeDailyL': otherIntakeDailyL,
-        'currentYear': DateTime.now().year,
-        'rainfallStatsByMonth': rainfallStats,
-        'waterIntakeStatsByMonth': intakeDebug,
-        'hasRoofCatchmentData':
-            roofCatchmentStr.isNotEmpty && roofCatchmentArea > 0,
-        'hasRainfallData': rainfallStats.values.any(
-          (stats) =>
-              stats['median']! > 0 || stats['min']! > 0 || stats['max']! > 0,
-        ),
-      };
-    } catch (e) {
-      return {'error': e.toString()};
     }
   }
 

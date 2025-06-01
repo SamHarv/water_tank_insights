@@ -1,7 +1,6 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../logic/services/data_persist_service.dart';
 import '/logic/tank_volume_calculator.dart';
 import 'water_usage_view.dart';
 import '/ui/widgets/constrained_width_widget.dart';
@@ -19,6 +18,9 @@ class TankInventoryView extends StatefulWidget {
 }
 
 class _TankInventoryViewState extends State<TankInventoryView> {
+  // Data persist service
+  final DataPersistService _dataPersistService = DataPersistService();
+
   // Button state for animation
   bool isPressed = false;
 
@@ -34,11 +36,6 @@ class _TankInventoryViewState extends State<TankInventoryView> {
 
   late final TextEditingController numOfTanksController;
 
-  // SharedPreferences keys
-  static const String _tanksKey = 'tanks_data';
-  static const String _tankCountKey = 'tank_count';
-  static const String _tankStatesKey = 'tank_states';
-
   // Loading state to prevent premature UI builds
   bool isLoading = true;
 
@@ -52,40 +49,12 @@ class _TankInventoryViewState extends State<TankInventoryView> {
   // Load saved data from SharedPreferences
   Future<void> _loadSavedData() async {
     try {
-      // Instance of SharedPreferences
-      final prefs = await SharedPreferences.getInstance();
+      final tankData = await _dataPersistService.loadTankData();
 
-      // Load tank count
-      numOfTanks = prefs.getInt(_tankCountKey) ?? 1;
+      numOfTanks = tankData['tankCount'];
       numOfTanksController.text = numOfTanks.toString();
-
-      // Load tank data
-      final String? savedTanksData = prefs.getString(_tanksKey);
-      final String? savedStatesData = prefs.getString(_tankStatesKey);
-
-      if (savedTanksData != null) {
-        // Decode JSON to Tank objects
-        final List<dynamic> tankDataList = json.decode(savedTanksData);
-        tanks =
-            tankDataList.map((tankData) => Tank.fromJson(tankData)).toList();
-      }
-
-      if (savedStatesData != null) {
-        // Decode JSON to load tank states - FIXED CASTING
-        final List<dynamic> statesDataList = json.decode(savedStatesData);
-        tankStates =
-            statesDataList.map((state) {
-              // Ensure proper casting for each state item
-              final Map<String, dynamic> stateMap =
-                  state as Map<String, dynamic>;
-              return {
-                'knowTankCapacity':
-                    stateMap['knowTankCapacity'] as bool? ?? false,
-                'knowTankWaterLevel':
-                    stateMap['knowTankWaterLevel'] as bool? ?? false,
-              };
-            }).toList();
-      }
+      tanks = tankData['tanks'];
+      tankStates = tankData['tankStates'];
 
       // Ensure we have the correct number of tank states
       while (tankStates.length < numOfTanks) {
@@ -270,12 +239,6 @@ class _TankInventoryViewState extends State<TankInventoryView> {
   // Save data to SharedPreferences
   Future<void> _saveData() async {
     try {
-      // Instance
-      final prefs = await SharedPreferences.getInstance();
-
-      // Save tank count
-      await prefs.setInt(_tankCountKey, numOfTanks);
-
       // Update tank data from text controllers
       for (int i = 0; i < tanks.length && i < tankControllers.length; i++) {
         final controllers = tankControllers[i];
@@ -299,13 +262,12 @@ class _TankInventoryViewState extends State<TankInventoryView> {
         );
       }
 
-      // Save tank data as JSON
-      final tankDataList = tanks.map((tank) => tank.toJson()).toList();
-      // Save tank data
-      await prefs.setString(_tanksKey, json.encode(tankDataList));
-
-      // Save tank states
-      await prefs.setString(_tankStatesKey, json.encode(tankStates));
+      // Save using the service
+      await _dataPersistService.saveTankData(
+        tankCount: numOfTanks,
+        tanks: tanks,
+        tankStates: tankStates,
+      );
     } catch (e) {
       showAlertDialog('Error saving data: $e');
     }

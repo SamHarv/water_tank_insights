@@ -1,14 +1,14 @@
-import 'dart:math' as math;
+// import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:fl_chart/fl_chart.dart';
+// import 'package:fl_chart/fl_chart.dart';
 
 import '../../config/constants.dart';
 import '../../data/api/rainfall_api.dart';
 import '../../data/database/database_service.dart';
 import '../../data/models/rainfall_record_model.dart';
 import '../../logic/services/postcode_service.dart';
+import '../../logic/services/data_persist_service.dart';
 import '/ui/views/tank_inventory_view.dart';
 import '/ui/widgets/constrained_width_widget.dart';
 
@@ -42,10 +42,8 @@ class _LocationViewState extends State<LocationView> {
   // Instant access to hardcoded postcodes
   List<String> availablePostcodes = PostcodesService.getAvailablePostcodes();
 
-  // SharedPreferences keys
-  static const String _postcodeKey = 'selected_postcode';
-  static const String _yearKey = 'selected_year';
-  static const String _timePeriodKey = 'selected_time_period';
+  // Data persist service
+  final DataPersistService _dataPersistService = DataPersistService();
 
   @override
   void initState() {
@@ -56,18 +54,25 @@ class _LocationViewState extends State<LocationView> {
 
   // Load saved location data
   Future<void> _loadSavedData() async {
-    final prefs = await SharedPreferences.getInstance();
+    try {
+      final locationData = await _dataPersistService.loadLocationData();
 
-    setState(() {
-      selectedPostcode = prefs.getString(_postcodeKey);
-      yearSelected =
-          prefs.getDouble(_yearKey) ?? DateTime.now().year.toDouble();
-      timePeriod = prefs.getString(_timePeriodKey) ?? "Monthly";
-    });
+      setState(() {
+        selectedPostcode = locationData['postcode'];
+        yearSelected = locationData['year'];
+        timePeriod = locationData['timePeriod'];
+      });
 
-    // Load chart data if postcode is selected
-    if (selectedPostcode != null) {
-      _loadChartData();
+      // Load chart data if postcode is selected
+      if (selectedPostcode != null) {
+        _loadChartData();
+      }
+    } catch (e) {
+      setState(() {
+        selectedPostcode = null;
+        yearSelected = DateTime.now().year.toDouble();
+        timePeriod = "Monthly";
+      });
     }
   }
 
@@ -151,13 +156,15 @@ class _LocationViewState extends State<LocationView> {
 
   // Save location data
   Future<void> _saveData() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    if (selectedPostcode != null) {
-      await prefs.setString(_postcodeKey, selectedPostcode!);
+    try {
+      await _dataPersistService.saveLocationData(
+        postcode: selectedPostcode,
+        year: yearSelected,
+        timePeriod: timePeriod,
+      );
+    } catch (e) {
+      _showAlertDialog('Failed to save location data: ${e.toString()}');
     }
-    await prefs.setDouble(_yearKey, yearSelected);
-    await prefs.setString(_timePeriodKey, timePeriod);
   }
 
   // Show alert dialog
@@ -181,329 +188,324 @@ class _LocationViewState extends State<LocationView> {
     );
   }
 
-  // Updated _buildRainfallChart method for location_view.dart
-  Widget _buildRainfallChart() {
-    if (isLoadingChart) {
-      return SizedBox(
-        height: 200,
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CircularProgressIndicator(color: blue),
-              SizedBox(height: 16),
-              Text(
-                'Loading rainfall data...',
-                style: TextStyle(color: Colors.grey),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
+  // // Build the rainfall chart
+  // Widget _buildRainfallChart() {
+  //   if (isLoadingChart) {
+  //     return SizedBox(
+  //       height: 200,
+  //       child: Center(
+  //         child: Column(
+  //           mainAxisAlignment: MainAxisAlignment.center,
+  //           children: [
+  //             CircularProgressIndicator(color: blue),
+  //             SizedBox(height: 16),
+  //             Text(
+  //               'Loading rainfall data...',
+  //               style: TextStyle(color: Colors.grey),
+  //             ),
+  //           ],
+  //         ),
+  //       ),
+  //     );
+  //   }
 
-    if (chartError != null) {
-      return SizedBox(
-        height: 200,
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error_outline, size: 48, color: Colors.red),
-              SizedBox(height: 16),
-              Text(
-                'Error Loading Data',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red.shade700,
-                ),
-              ),
-              SizedBox(height: 8),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  chartError!,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 12, color: Colors.red.shade600),
-                ),
-              ),
-              SizedBox(height: 12),
-              ElevatedButton.icon(
-                onPressed: _loadChartData,
-                icon: Icon(Icons.refresh),
-                label: Text('Retry'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: blue,
-                  foregroundColor: white,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
+  //   if (chartError != null) {
+  //     return SizedBox(
+  //       height: 200,
+  //       child: Center(
+  //         child: Column(
+  //           mainAxisAlignment: MainAxisAlignment.center,
+  //           children: [
+  //             Icon(Icons.error_outline, size: 48, color: Colors.red),
+  //             SizedBox(height: 16),
+  //             Text(
+  //               'Error Loading Data',
+  //               style: TextStyle(
+  //                 fontSize: 16,
+  //                 fontWeight: FontWeight.bold,
+  //                 color: Colors.red.shade700,
+  //               ),
+  //             ),
+  //             SizedBox(height: 8),
+  //             Padding(
+  //               padding: EdgeInsets.symmetric(horizontal: 16),
+  //               child: Text(
+  //                 chartError!,
+  //                 textAlign: TextAlign.center,
+  //                 style: TextStyle(fontSize: 12, color: Colors.red.shade600),
+  //               ),
+  //             ),
+  //             SizedBox(height: 12),
+  //             ElevatedButton.icon(
+  //               onPressed: _loadChartData,
+  //               icon: Icon(Icons.refresh),
+  //               label: Text('Retry'),
+  //               style: ElevatedButton.styleFrom(
+  //                 backgroundColor: blue,
+  //                 foregroundColor: white,
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //       ),
+  //     );
+  //   }
 
-    if (timePeriod == "Monthly" && monthlyRainfallData != null) {
-      // Check if all months have zero rainfall (no data)
-      final hasData = monthlyRainfallData!.any(
-        (month) => month.totalRainfall > 0,
-      );
+  //   if (timePeriod == "Monthly" && monthlyRainfallData != null) {
+  //     // Check if all months have zero rainfall (no data)
+  //     final hasData = monthlyRainfallData!.any(
+  //       (month) => month.totalRainfall > 0,
+  //     );
 
-      if (!hasData) {
-        return _buildNoDataMessage();
-      }
+  //     if (!hasData) {
+  //       return _buildNoDataMessage();
+  //     }
 
-      return _buildMonthlyChart();
-    } else if (timePeriod == "Annual" && annualRainfall != null) {
-      if (annualRainfall == 0) {
-        return _buildNoDataMessage();
-      }
-      return _buildAnnualChart();
-    }
+  //     return _buildMonthlyChart();
+  //   } else if (timePeriod == "Annual" && annualRainfall != null) {
+  //     if (annualRainfall == 0) {
+  //       return _buildNoDataMessage();
+  //     }
+  //     return _buildAnnualChart();
+  //   }
 
-    return SizedBox(
-      height: 200,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.location_on, size: 48, color: Colors.grey),
-            SizedBox(height: 16),
-            Text(
-              "Select a postcode to view rainfall data",
-              style: TextStyle(color: Colors.grey),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  //   return SizedBox(
+  //     height: 200,
+  //     child: Center(
+  //       child: Column(
+  //         mainAxisAlignment: MainAxisAlignment.center,
+  //         children: [
+  //           Icon(Icons.location_on, size: 48, color: Colors.grey),
+  //           SizedBox(height: 16),
+  //           Text(
+  //             "Select a postcode to view rainfall data",
+  //             style: TextStyle(color: Colors.grey),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
-  // Show no data message
-  Widget _buildNoDataMessage() {
-    final constrainedYear = yearSelected.toInt().clamp(
-      1975,
-      DateTime.now().year,
-    );
+  // // Show no data message
+  // Widget _buildNoDataMessage() {
+  //   final constrainedYear = yearSelected.toInt().clamp(
+  //     1975,
+  //     DateTime.now().year,
+  //   );
 
-    return SizedBox(
-      height: 200,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.cloud_off, size: 48, color: Colors.grey),
-            SizedBox(height: 16),
-            Text(
-              'No Weather Data Available',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey.shade700,
-              ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Weather data for postcode $selectedPostcode\nis not available for $constrainedYear',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-            ),
-            SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Try again
-                ElevatedButton.icon(
-                  onPressed: _loadChartData,
-                  icon: Icon(Icons.refresh),
-                  label: Text('Retry'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: blue,
-                    foregroundColor: white,
-                  ),
-                ),
-                SizedBox(width: 8),
-                // Try current year
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      yearSelected = DateTime.now().year.toDouble();
-                    });
-                    _loadChartData();
-                  },
-                  child: Text('Try Current Year'),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  //   return SizedBox(
+  //     height: 200,
+  //     child: Center(
+  //       child: Column(
+  //         mainAxisAlignment: MainAxisAlignment.center,
+  //         children: [
+  //           Icon(Icons.cloud_off, size: 48, color: Colors.grey),
+  //           SizedBox(height: 16),
+  //           Text(
+  //             'No Weather Data Available',
+  //             style: TextStyle(
+  //               fontSize: 16,
+  //               fontWeight: FontWeight.bold,
+  //               color: Colors.grey.shade700,
+  //             ),
+  //           ),
+  //           SizedBox(height: 8),
+  //           Text(
+  //             'Weather data for postcode $selectedPostcode\nis not available for $constrainedYear',
+  //             textAlign: TextAlign.center,
+  //             style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+  //           ),
+  //           SizedBox(height: 12),
+  //           Row(
+  //             mainAxisAlignment: MainAxisAlignment.center,
+  //             children: [
+  //               // Try again
+  //               ElevatedButton.icon(
+  //                 onPressed: _loadChartData,
+  //                 icon: Icon(Icons.refresh),
+  //                 label: Text('Retry'),
+  //                 style: ElevatedButton.styleFrom(
+  //                   backgroundColor: blue,
+  //                   foregroundColor: white,
+  //                 ),
+  //               ),
+  //               SizedBox(width: 8),
+  //               // Try current year
+  //               TextButton(
+  //                 onPressed: () {
+  //                   setState(() {
+  //                     yearSelected = DateTime.now().year.toDouble();
+  //                   });
+  //                   _loadChartData();
+  //                 },
+  //                 child: Text('Try Current Year'),
+  //               ),
+  //             ],
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
-  // Build monthly bar chart
-  Widget _buildMonthlyChart() {
-    // Calculate max value, ensuring it's never 0
-    final maxValue = monthlyRainfallData!
-        .map((e) => e.totalRainfall)
-        .reduce((a, b) => a > b ? a : b);
+  // // Build monthly bar chart
+  // Widget _buildMonthlyChart() {
+  //   // Calculate max value, ensuring it's never 0
+  //   final maxValue = monthlyRainfallData!
+  //       .map((e) => e.totalRainfall)
+  //       .reduce((a, b) => a > b ? a : b);
 
-    // If all values are 0, set a default max to avoid division by zero
-    final maxY = maxValue > 0 ? maxValue * 1.2 : 10.0;
+  //   // If all values are 0, set a default max to avoid division by zero
+  //   final maxY = maxValue > 0 ? maxValue * 1.2 : 10.0;
 
-    return SizedBox(
-      height: 200,
-      child: BarChart(
-        BarChartData(
-          alignment: BarChartAlignment.spaceAround,
-          maxY: maxY,
-          barTouchData: BarTouchData(
-            enabled: true,
-            touchTooltipData: BarTouchTooltipData(
-              getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                final month = monthlyRainfallData![group.x.toInt()];
-                return BarTooltipItem(
-                  '${month.monthName}\n${rod.toY.toStringAsFixed(1)} mm',
-                  TextStyle(color: white, fontSize: 12),
-                );
-              },
-            ),
-          ),
-          titlesData: FlTitlesData(
-            show: true,
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                getTitlesWidget: (value, meta) {
-                  if (value.toInt() < monthlyRainfallData!.length) {
-                    return Transform.rotate(
-                      angle: -90 / 180 * math.pi,
-                      child: Text(
-                        monthlyRainfallData![value.toInt()].monthName,
-                        style: TextStyle(
-                          color: black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
-                      ),
-                    );
-                  }
-                  return Text('');
-                },
-                reservedSize: 30,
-              ),
-            ),
-            leftTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                reservedSize: 40,
-                interval: maxY > 10 ? null : 2,
-                getTitlesWidget: (value, meta) {
-                  return Text(
-                    '${value.toInt()}',
-                    style: TextStyle(
-                      color: black,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 10,
-                    ),
-                  );
-                },
-              ),
-            ),
-            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          ),
-          gridData: FlGridData(
-            show: true,
-            drawVerticalLine: false,
-            horizontalInterval: maxY > 0 ? maxY / 5 : 2,
-            getDrawingHorizontalLine: (value) {
-              return FlLine(color: Colors.grey.shade300, strokeWidth: 1);
-            },
-          ),
-          borderData: FlBorderData(
-            show: true,
-            border: Border(
-              bottom: BorderSide(color: black, width: 2),
-              left: BorderSide(color: black, width: 2),
-            ),
-          ),
-          barGroups:
-              monthlyRainfallData!.asMap().entries.map((entry) {
-                return BarChartGroupData(
-                  x: entry.key,
-                  barRods: [
-                    BarChartRodData(
-                      toY: entry.value.totalRainfall,
-                      color: blue,
-                      width: 15,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(6),
-                        topRight: Radius.circular(6),
-                      ),
-                    ),
-                  ],
-                );
-              }).toList(),
-        ),
-      ),
-    );
-  }
+  //   return SizedBox(
+  //     height: 200,
+  //     child: BarChart(
+  //       BarChartData(
+  //         alignment: BarChartAlignment.spaceAround,
+  //         maxY: maxY,
+  //         barTouchData: BarTouchData(
+  //           enabled: true,
+  //           touchTooltipData: BarTouchTooltipData(
+  //             getTooltipItem: (group, groupIndex, rod, rodIndex) {
+  //               final month = monthlyRainfallData![group.x.toInt()];
+  //               return BarTooltipItem(
+  //                 '${month.monthName}\n${rod.toY.toStringAsFixed(1)} mm',
+  //                 TextStyle(color: white, fontSize: 12),
+  //               );
+  //             },
+  //           ),
+  //         ),
+  //         titlesData: FlTitlesData(
+  //           show: true,
+  //           bottomTitles: AxisTitles(
+  //             sideTitles: SideTitles(
+  //               showTitles: true,
+  //               getTitlesWidget: (value, meta) {
+  //                 if (value.toInt() < monthlyRainfallData!.length) {
+  //                   return Transform.rotate(
+  //                     angle: -90 / 180 * math.pi,
+  //                     child: Text(
+  //                       monthlyRainfallData![value.toInt()].monthName,
+  //                       style: TextStyle(
+  //                         color: black,
+  //                         fontWeight: FontWeight.bold,
+  //                         fontSize: 12,
+  //                       ),
+  //                     ),
+  //                   );
+  //                 }
+  //                 return Text('');
+  //               },
+  //               reservedSize: 30,
+  //             ),
+  //           ),
+  //           leftTitles: AxisTitles(
+  //             sideTitles: SideTitles(
+  //               showTitles: true,
+  //               reservedSize: 40,
+  //               interval: maxY > 10 ? null : 2,
+  //               getTitlesWidget: (value, meta) {
+  //                 return Text(
+  //                   '${value.toInt()}',
+  //                   style: TextStyle(
+  //                     color: black,
+  //                     fontWeight: FontWeight.bold,
+  //                     fontSize: 10,
+  //                   ),
+  //                 );
+  //               },
+  //             ),
+  //           ),
+  //           topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+  //           rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+  //         ),
+  //         gridData: FlGridData(
+  //           show: true,
+  //           drawVerticalLine: false,
+  //           horizontalInterval: maxY > 0 ? maxY / 5 : 2,
+  //           getDrawingHorizontalLine: (value) {
+  //             return FlLine(color: Colors.grey.shade300, strokeWidth: 1);
+  //           },
+  //         ),
+  //         borderData: FlBorderData(
+  //           show: true,
+  //           border: Border(
+  //             bottom: BorderSide(color: black, width: 2),
+  //             left: BorderSide(color: black, width: 2),
+  //           ),
+  //         ),
+  //         barGroups:
+  //             monthlyRainfallData!.asMap().entries.map((entry) {
+  //               return BarChartGroupData(
+  //                 x: entry.key,
+  //                 barRods: [
+  //                   BarChartRodData(
+  //                     toY: entry.value.totalRainfall,
+  //                     color: blue,
+  //                     width: 15,
+  //                     borderRadius: BorderRadius.only(
+  //                       topLeft: Radius.circular(6),
+  //                       topRight: Radius.circular(6),
+  //                     ),
+  //                   ),
+  //                 ],
+  //               );
+  //             }).toList(),
+  //       ),
+  //     ),
+  //   );
+  // }
 
-  // Build annual summary chart
-  Widget _buildAnnualChart() {
-    final constrainedYear = yearSelected.toInt().clamp(
-      1975,
-      DateTime.now().year,
-    );
+  // // Build annual summary chart
+  // Widget _buildAnnualChart() {
+  //   final constrainedYear = yearSelected.toInt().clamp(
+  //     1975,
+  //     DateTime.now().year,
+  //   );
 
-    return SizedBox(
-      height: 200,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.water_drop, size: 48, color: blue),
-            SizedBox(height: 16),
-            Text(
-              'Total Annual Rainfall',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8),
-            Text(
-              '${annualRainfall!.toStringAsFixed(1)} mm',
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: blue,
-              ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Year $constrainedYear',
-              style: TextStyle(fontSize: 14, color: Colors.grey),
-            ),
-            SizedBox(height: 4),
-            Text(
-              'Postcode $selectedPostcode',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  //   return SizedBox(
+  //     height: 200,
+  //     child: Center(
+  //       child: Column(
+  //         mainAxisAlignment: MainAxisAlignment.center,
+  //         children: [
+  //           Icon(Icons.water_drop, size: 48, color: blue),
+  //           SizedBox(height: 16),
+  //           Text(
+  //             'Total Annual Rainfall',
+  //             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+  //           ),
+  //           SizedBox(height: 8),
+  //           Text(
+  //             '${annualRainfall!.toStringAsFixed(1)} mm',
+  //             style: TextStyle(
+  //               fontSize: 32,
+  //               fontWeight: FontWeight.bold,
+  //               color: blue,
+  //             ),
+  //           ),
+  //           SizedBox(height: 8),
+  //           Text(
+  //             'Year $constrainedYear',
+  //             style: TextStyle(fontSize: 14, color: Colors.grey),
+  //           ),
+  //           SizedBox(height: 4),
+  //           Text(
+  //             'Postcode $selectedPostcode',
+  //             style: TextStyle(fontSize: 12, color: Colors.grey),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
     // Width of screen
     final mediaWidth = MediaQuery.sizeOf(context).width;
-    // Limit years to 1975-current
-    final constrainedYear = yearSelected.toInt().clamp(
-      1975,
-      DateTime.now().year,
-    );
 
     return Scaffold(
       appBar: buildAppBar(context),

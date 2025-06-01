@@ -160,8 +160,6 @@ class _OutputViewState extends State<OutputView> {
                 getTitlesWidget: (value, meta) {
                   final index = value.toInt();
                   if (index >= 0 && index < projectedData.length) {
-                    // final date = DateTime.parse(projectedData[index]['date']);
-                    final date = projectedData[index]['date'];
                     return Text(
                       projectedData[index]['dateFormatted'],
                       style: TextStyle(

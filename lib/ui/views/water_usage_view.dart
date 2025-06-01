@@ -1,12 +1,11 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
+import '/logic/services/data_persist_service.dart';
 import '/logic/services/url_launcher.dart';
 import '/ui/widgets/constrained_width_widget.dart';
 import '/ui/widgets/input_field_widget.dart';
-import '../../config/constants.dart';
+import '/config/constants.dart';
 import 'output_view.dart';
 
 class WaterUsageView extends StatefulWidget {
@@ -18,6 +17,9 @@ class WaterUsageView extends StatefulWidget {
 }
 
 class _WaterUsageViewState extends State<WaterUsageView> {
+  // Data persist service
+  final _dataPersistService = DataPersistService();
+
   late final TextEditingController numOfPeopleController;
   bool isPressed = false;
   int numOfPeople = 0;
@@ -30,11 +32,6 @@ class _WaterUsageViewState extends State<WaterUsageView> {
 
   // List to track which input method is being used for each person (true = manual, false = segmented)
   List<bool> isManualInputList = [];
-
-  // SharedPreferences keys
-  static const String _numOfPeopleKey = 'num_of_people';
-  static const String _personWaterUsageListKey = 'person_water_usage_list';
-  static const String _isManualInputListKey = 'is_manual_input_list';
 
   // Loading state
   bool isLoading = true;
@@ -49,31 +46,14 @@ class _WaterUsageViewState extends State<WaterUsageView> {
   // Load saved data from SharedPreferences
   Future<void> _loadSavedData() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final waterUsageData = await _dataPersistService.loadWaterUsageData();
 
-      // Load number of people
-      final savedNumOfPeople = prefs.getInt(_numOfPeopleKey) ?? 0;
+      final savedNumOfPeople = waterUsageData['numOfPeople'];
+      final savedUsageList = waterUsageData['personWaterUsageList'];
+      final savedManualInputList = waterUsageData['isManualInputList'];
 
-      // Load individual person water usage
-      List<int> savedUsageList = [];
-      final savedUsageListString = prefs.getString(_personWaterUsageListKey);
-      if (savedUsageListString != null) {
-        final List<dynamic> usageData = json.decode(savedUsageListString);
-        savedUsageList = usageData.cast<int>();
-      }
-
-      // Load manual input preferences
-      List<bool> savedManualInputList = [];
-      final savedManualInputListString = prefs.getString(_isManualInputListKey);
-      if (savedManualInputListString != null) {
-        final List<dynamic> manualInputData = json.decode(
-          savedManualInputListString,
-        );
-        savedManualInputList = manualInputData.cast<bool>();
-      }
-
-      // Initialize all lists properly before setState
-      _initializeLists(savedNumOfPeople, savedUsageList, savedManualInputList);
+      // Initialise all lists properly before setState
+      _initialiseLists(savedNumOfPeople, savedUsageList, savedManualInputList);
 
       setState(() {
         numOfPeople = savedNumOfPeople;
@@ -93,7 +73,7 @@ class _WaterUsageViewState extends State<WaterUsageView> {
   }
 
   // Initialize all lists with proper sizes and default values
-  void _initializeLists(
+  void _initialiseLists(
     int numPeople,
     List<int> savedUsageList,
     List<bool> savedManualInputList,
@@ -184,21 +164,10 @@ class _WaterUsageViewState extends State<WaterUsageView> {
   // Save data to SharedPreferences
   Future<void> _saveData() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-
-      // Save number of people
-      await prefs.setInt(_numOfPeopleKey, numOfPeople);
-
-      // Save individual person water usage list
-      await prefs.setString(
-        _personWaterUsageListKey,
-        json.encode(personWaterUsageList),
-      );
-
-      // Save manual input preferences
-      await prefs.setString(
-        _isManualInputListKey,
-        json.encode(isManualInputList),
+      await _dataPersistService.saveWaterUsageData(
+        numOfPeople: numOfPeople,
+        personWaterUsageList: personWaterUsageList,
+        isManualInputList: isManualInputList,
       );
     } catch (e) {
       throw 'Error saving water usage data: $e';

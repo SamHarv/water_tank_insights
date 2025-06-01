@@ -144,48 +144,6 @@ class RainfallApiService {
       client.close();
     }
   }
-
-  // TODO: delete if not needed
-  // // Get available postcodes (if your API supports this)
-  // static Future<List<String>> getAvailablePostcodes() async {
-  //   // If your colleague's API has an endpoint for this
-  //   try {
-  //     if (kIsWeb) {
-  //       // Web implementation with proxy
-  //       final client = http.Client();
-  //       final targetUrl = '$_baseUrl/get_postcodes';
-  //       final proxyUrl =
-  //           'https://api.allorigins.win/get?url=${Uri.encodeComponent(targetUrl)}';
-
-  //       final response = await client
-  //           .get(Uri.parse(proxyUrl))
-  //           .timeout(_timeout);
-
-  //       if (response.statusCode == 200) {
-  //         final proxyResponse = json.decode(response.body);
-  //         final List<dynamic> postcodes = json.decode(
-  //           proxyResponse['contents'],
-  //         );
-  //         return postcodes.map((e) => e.toString()).toList();
-  //       }
-  //       client.close();
-  //     } else {
-  //       // Native implementation
-  //       final response = await http
-  //           .get(Uri.parse('$_baseUrl/get_postcodes'))
-  //           .timeout(_timeout);
-  //       if (response.statusCode == 200) {
-  //         final List<dynamic> postcodes = json.decode(response.body);
-  //         return postcodes.map((e) => e.toString()).toList();
-  //       }
-  //     }
-  //   } catch (e) {
-  //     throw RainfallApiException('Failed to fetch available postcodes: $e');
-  //   }
-
-  //   // Fallback to hardcoded postcodes
-  //   return PostcodesService.getAvailablePostcodes();
-  // }
 }
 
 // Custom exception for API errors

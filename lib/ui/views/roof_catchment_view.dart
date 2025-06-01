@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '/ui/views/water_usage_view.dart';
 import '/ui/widgets/input_field_widget.dart';
 import '/config/constants.dart';
+import '../../logic/services/data_persist_service.dart';
 import '../widgets/constrained_width_widget.dart';
 
 class RoofCatchmentView extends StatefulWidget {
@@ -24,10 +24,8 @@ class _RoofCatchmentViewState extends State<RoofCatchmentView> {
   late final TextEditingController roofCatchmentController;
   late final TextEditingController otherIntakeController;
 
-  // SharedPreferences keys
-  static const String _knowRoofCatchmentKey = 'know_roof_catchment';
-  static const String _roofCatchmentAreaKey = 'roof_catchment_area';
-  static const String _otherIntakeKey = 'other_intake';
+  // Data persist service
+  final _dataPersistService = DataPersistService();
 
   // Loading state
   bool isLoading = true;
@@ -43,20 +41,21 @@ class _RoofCatchmentViewState extends State<RoofCatchmentView> {
   // Load saved data from SharedPreferences
   Future<void> _loadSavedData() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final roofCatchmentData =
+          await _dataPersistService.loadRoofCatchmentData();
 
       setState(() {
         // Load boolean state
-        knowRoofCatchment = prefs.getBool(_knowRoofCatchmentKey) ?? false;
+        knowRoofCatchment = roofCatchmentData['knowRoofCatchment'];
 
         // Load text field values
-        final savedRoofCatchment = prefs.getString(_roofCatchmentAreaKey);
-        if (savedRoofCatchment != null && savedRoofCatchment.isNotEmpty) {
+        final savedRoofCatchment = roofCatchmentData['roofCatchmentArea'];
+        if (savedRoofCatchment.isNotEmpty) {
           roofCatchmentController.text = savedRoofCatchment;
         }
 
-        final savedOtherIntake = prefs.getString(_otherIntakeKey);
-        if (savedOtherIntake != null && savedOtherIntake.isNotEmpty) {
+        final savedOtherIntake = roofCatchmentData['otherIntake'];
+        if (savedOtherIntake.isNotEmpty) {
           otherIntakeController.text = savedOtherIntake;
         }
 
@@ -88,17 +87,11 @@ class _RoofCatchmentViewState extends State<RoofCatchmentView> {
   // Save data to SharedPreferences
   Future<void> _saveData() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-
-      // Save boolean state
-      await prefs.setBool(_knowRoofCatchmentKey, knowRoofCatchment);
-
-      // Save text field values
-      await prefs.setString(
-        _roofCatchmentAreaKey,
-        roofCatchmentController.text,
+      await _dataPersistService.saveRoofCatchmentData(
+        knowRoofCatchment: knowRoofCatchment,
+        roofCatchmentArea: roofCatchmentController.text,
+        otherIntake: otherIntakeController.text,
       );
-      await prefs.setString(_otherIntakeKey, otherIntakeController.text);
     } catch (e) {
       rethrow;
     }
@@ -192,36 +185,60 @@ class _RoofCatchmentViewState extends State<RoofCatchmentView> {
                 // Know catchment area?
                 ConstrainedWidthWidget(
                   child: Text(
-                    "Do you know your roof catchment area?",
+                    "Enter your roof catchment area plumbed into tanks:",
                     style: inputFieldStyle,
                   ),
                 ),
+                // ConstrainedWidthWidget(
+                //   child: SegmentedButton(
+                //     selectedIcon: Icon(Icons.check, color: black),
+                //     style: segButtonStyle,
+                //     segments: [
+                //       ButtonSegment(
+                //         value: true,
+                //         label: Padding(
+                //           padding: const EdgeInsets.all(16),
+                //           child: Text("Yes"),
+                //         ),
+                //       ),
+                //       ButtonSegment(
+                //         value: false,
+                //         label: Padding(
+                //           padding: const EdgeInsets.all(16),
+                //           child: Text("No"),
+                //         ),
+                //       ),
+                //     ],
+                //     selected: {knowRoofCatchment},
+                //     onSelectionChanged: (selected) {
+                //       setState(() {
+                //         knowRoofCatchment = selected.first;
+                //       });
+                //       _saveData(); // Auto-save when selection changes
+                //     },
+                //   ),
+                // ),
+
+                // Input catchment area m2
                 ConstrainedWidthWidget(
-                  child: SegmentedButton(
-                    selectedIcon: Icon(Icons.check, color: black),
-                    style: segButtonStyle,
-                    segments: [
-                      ButtonSegment(
-                        value: true,
-                        label: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Text("Yes"),
-                        ),
-                      ),
-                      ButtonSegment(
-                        value: false,
-                        label: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Text("No"),
-                        ),
-                      ),
-                    ],
-                    selected: {knowRoofCatchment},
-                    onSelectionChanged: (selected) {
-                      setState(() {
-                        knowRoofCatchment = selected.first;
-                      });
-                      _saveData(); // Auto-save when selection changes
+                  child: InputFieldWidget(
+                    label: "Catchment Area (m²)",
+                    controller: roofCatchmentController,
+                    onChanged: (value) {
+                      // Validate inputs
+                      if (roofCatchmentController.text.isNotEmpty) {
+                        try {
+                          double.parse(value);
+                        } catch (e) {
+                          _showAlertDialog(
+                            "Please enter a valid numerical roof catchment area in m²",
+                          );
+                          roofCatchmentController.clear();
+                          return;
+                        }
+                      }
+                      setState(() {});
+                      // Auto-save is handled by the listener
                     },
                   ),
                 ),
@@ -271,7 +288,7 @@ class _RoofCatchmentViewState extends State<RoofCatchmentView> {
                                       ),
                                       SizedBox(height: 8),
                                       Text(
-                                        '2. Multiply length × width = area in m²',
+                                        '2. Multiply length x width = area in m²',
                                         style: TextStyle(fontSize: 14),
                                       ),
                                       SizedBox(height: 8),
@@ -286,7 +303,7 @@ class _RoofCatchmentViewState extends State<RoofCatchmentView> {
                                       ),
                                       SizedBox(height: 16),
                                       Text(
-                                        'Example: 10m × 8m roof = 80m² catchment area',
+                                        'Example: 10m x 8m roof = 80m² catchment area',
                                         style: TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.bold,
@@ -330,29 +347,6 @@ class _RoofCatchmentViewState extends State<RoofCatchmentView> {
                         ),
                       ),
                     ),
-                  ),
-                ),
-                // Input catchment area m2
-                ConstrainedWidthWidget(
-                  child: InputFieldWidget(
-                    label: "Catchment Area (m²)",
-                    controller: roofCatchmentController,
-                    onChanged: (value) {
-                      // Validate inputs
-                      if (roofCatchmentController.text.isNotEmpty) {
-                        try {
-                          double.parse(value);
-                        } catch (e) {
-                          _showAlertDialog(
-                            "Please enter a valid numerical roof catchment area in m²",
-                          );
-                          roofCatchmentController.clear();
-                          return;
-                        }
-                      }
-                      setState(() {});
-                      // Auto-save is handled by the listener
-                    },
                   ),
                 ),
                 ConstrainedWidthWidget(
