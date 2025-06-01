@@ -519,6 +519,13 @@ class _LocationViewState extends State<LocationView> {
                   child: Text("Location", style: headingStyle),
                 ),
                 ConstrainedWidthWidget(
+                  child: Text(
+                    "The functionality of this application is available only to the "
+                    "Adelaide (South Australia) and surrounding area.",
+                    style: subHeadingStyle,
+                  ),
+                ),
+                ConstrainedWidthWidget(
                   child: Text("Enter your location:", style: inputFieldStyle),
                 ),
 
@@ -574,8 +581,17 @@ class _LocationViewState extends State<LocationView> {
                         if (!PostcodesService.isValidPostcode(
                           postcodeController.text,
                         )) {
+                          // if numerical and 4 digit
+                          if (postcodeController.text.length == 4 &&
+                              int.tryParse(postcodeController.text) != null) {
+                            _showAlertDialog(
+                              "Sorry, your area is outside of the supported area for this application.",
+                            );
+                          } else {
+                            _showAlertDialog("Please enter a valid postcode");
+                          }
+
                           postcodeController.clear();
-                          _showAlertDialog("Please enter a valid postcode");
                         }
                         setState(() {
                           selectedPostcode = postcode;
@@ -589,121 +605,121 @@ class _LocationViewState extends State<LocationView> {
                   ),
                 ),
 
-                // Year selection slider
-                ConstrainedWidthWidget(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text("Year", style: inputFieldStyle),
-                      SizedBox(width: 32),
-                      Text(constrainedYear.toString(), style: headingStyle),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Slider(
-                          value: yearSelected,
-                          activeColor: black,
-                          secondaryActiveColor: white,
-                          thumbColor: white,
-                          min:
-                              1975.toDouble(), // Adjusted for API data availability
-                          max: DateTime.now().year.toDouble(),
-                          onChanged: (value) {
-                            setState(() {
-                              yearSelected = value;
-                            });
-                          },
-                          onChangeEnd: (value) {
-                            _saveData();
-                            // Load data if postcode is selected
-                            if (selectedPostcode != null) {
-                              _loadChartData();
-                            }
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                // // Year selection slider
+                // ConstrainedWidthWidget(
+                //   child: Row(
+                //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                //     children: [
+                //       Text("Year", style: inputFieldStyle),
+                //       SizedBox(width: 32),
+                //       Text(constrainedYear.toString(), style: headingStyle),
+                //       SizedBox(width: 8),
+                //       Expanded(
+                //         child: Slider(
+                //           value: yearSelected,
+                //           activeColor: black,
+                //           secondaryActiveColor: white,
+                //           thumbColor: white,
+                //           min:
+                //               1975.toDouble(), // Adjusted for API data availability
+                //           max: DateTime.now().year.toDouble(),
+                //           onChanged: (value) {
+                //             setState(() {
+                //               yearSelected = value;
+                //             });
+                //           },
+                //           onChangeEnd: (value) {
+                //             _saveData();
+                //             // Load data if postcode is selected
+                //             if (selectedPostcode != null) {
+                //               _loadChartData();
+                //             }
+                //           },
+                //         ),
+                //       ),
+                //     ],
+                //   ),
+                // ),
 
-                // Chart to visualise rainfall
-                ConstrainedWidthWidget(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: white,
-                      border: Border.all(color: black, width: 3),
-                      borderRadius: kBorderRadius,
-                    ),
-                    child: Padding(
-                      padding: EdgeInsets.all(16),
-                      child: Center(
-                        child: Column(
-                          spacing: 16,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text("Rainfall Data", style: subHeadingStyle),
-                                if (selectedPostcode != null && !isLoadingChart)
-                                  Padding(
-                                    padding: EdgeInsets.only(left: 8),
-                                    child: Chip(
-                                      label: Text(
-                                        selectedPostcode!,
-                                        style: TextStyle(fontSize: 12),
-                                      ),
-                                      backgroundColor: blue.withValues(
-                                        alpha: 0.1,
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            _buildRainfallChart(),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
+                // // Chart to visualise rainfall
+                // ConstrainedWidthWidget(
+                //   child: Container(
+                //     decoration: BoxDecoration(
+                //       color: white,
+                //       border: Border.all(color: black, width: 3),
+                //       borderRadius: kBorderRadius,
+                //     ),
+                //     child: Padding(
+                //       padding: EdgeInsets.all(16),
+                //       child: Center(
+                //         child: Column(
+                //           spacing: 16,
+                //           children: [
+                //             Row(
+                //               mainAxisAlignment: MainAxisAlignment.center,
+                //               children: [
+                //                 Text("Rainfall Data", style: subHeadingStyle),
+                //                 if (selectedPostcode != null && !isLoadingChart)
+                //                   Padding(
+                //                     padding: EdgeInsets.only(left: 8),
+                //                     child: Chip(
+                //                       label: Text(
+                //                         selectedPostcode!,
+                //                         style: TextStyle(fontSize: 12),
+                //                       ),
+                //                       backgroundColor: blue.withValues(
+                //                         alpha: 0.1,
+                //                       ),
+                //                     ),
+                //                   ),
+                //               ],
+                //             ),
+                //             _buildRainfallChart(),
+                //           ],
+                //         ),
+                //       ),
+                //     ),
+                //   ),
+                // ),
 
-                // Segmented button for monthly/annual view
-                ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: 500),
-                  child: SizedBox(
-                    width: mediaWidth * 0.8,
-                    child: SegmentedButton(
-                      selectedIcon: Icon(Icons.check, color: black),
-                      style: segButtonStyle,
-                      segments: [
-                        ButtonSegment(
-                          value: "Monthly",
-                          label: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Text("Monthly"),
-                          ),
-                        ),
-                        ButtonSegment(
-                          value: "Annual",
-                          label: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Text("Annual"),
-                          ),
-                        ),
-                      ],
-                      selected: {timePeriod},
-                      onSelectionChanged: (Set<String> newSelection) {
-                        setState(() {
-                          timePeriod = newSelection.first;
-                        });
-                        _saveData();
-                        // Load data if postcode is selected
-                        if (selectedPostcode != null) {
-                          _loadChartData();
-                        }
-                      },
-                    ),
-                  ),
-                ),
+                // // Segmented button for monthly/annual view
+                // ConstrainedBox(
+                //   constraints: BoxConstraints(maxWidth: 500),
+                //   child: SizedBox(
+                //     width: mediaWidth * 0.8,
+                //     child: SegmentedButton(
+                //       selectedIcon: Icon(Icons.check, color: black),
+                //       style: segButtonStyle,
+                //       segments: [
+                //         ButtonSegment(
+                //           value: "Monthly",
+                //           label: Padding(
+                //             padding: const EdgeInsets.all(16),
+                //             child: Text("Monthly"),
+                //           ),
+                //         ),
+                //         ButtonSegment(
+                //           value: "Annual",
+                //           label: Padding(
+                //             padding: const EdgeInsets.all(16),
+                //             child: Text("Annual"),
+                //           ),
+                //         ),
+                //       ],
+                //       selected: {timePeriod},
+                //       onSelectionChanged: (Set<String> newSelection) {
+                //         setState(() {
+                //           timePeriod = newSelection.first;
+                //         });
+                //         _saveData();
+                //         // Load data if postcode is selected
+                //         if (selectedPostcode != null) {
+                //           _loadChartData();
+                //         }
+                //       },
+                //     ),
+                //   ),
+                // ),
 
                 // Continue button
                 Tooltip(
@@ -727,9 +743,19 @@ class _LocationViewState extends State<LocationView> {
                         if (!PostcodesService.isValidPostcode(
                           postcodeController.text,
                         )) {
-                          postcodeController.clear();
-                          _showAlertDialog("Please enter a valid postcode");
-                          return;
+                          // if numerical and 4 digit
+                          if (postcodeController.text.length == 4 &&
+                              int.tryParse(postcodeController.text) != null) {
+                            _showAlertDialog(
+                              "Sorry, your area is outside of the supported area for this application.",
+                            );
+                            postcodeController.clear();
+                            return;
+                          } else {
+                            _showAlertDialog("Please enter a valid postcode");
+                            postcodeController.clear();
+                            return;
+                          }
                         }
 
                         _saveData(); // save
