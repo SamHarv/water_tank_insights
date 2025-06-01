@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import '../database/database_service.dart';
+import 'weather_data_model.dart';
 
 class RainfallRecord {
   /// [RainfallRecord] data model to store rainfall data

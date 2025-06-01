@@ -20,7 +20,7 @@ class RainfallApiService {
   }) async {
     try {
       if (kIsWeb) {
-        // Fetch rainfall data on web
+        // Fetch rainfall data on web (with CORS proxy)
         return await _getRainfallDataWeb(
           postcode: postcode,
           year: year,
@@ -39,7 +39,7 @@ class RainfallApiService {
     }
   }
 
-  // Native app version (no CORS issues)
+  // Mobile app version (no CORS issues)
   static Future<List<RainfallRecord>> _getRainfallDataNative({
     required String postcode,
     int? year,
@@ -125,7 +125,7 @@ class RainfallApiService {
             }
 
             if (responseData is List) {
-              // Convert JSON data to RainfallRecord objects
+              // Convert JSON data to list of RainfallRecord objects
               return responseData
                   .map((item) => RainfallRecord.fromJson(item, postcode))
                   .toList();

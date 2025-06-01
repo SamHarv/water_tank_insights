@@ -5,6 +5,7 @@ import '../../logic/services/data_persist_service.dart';
 class ResultsCalculator {
   /// [ResultsCalculator] calculates water balance and days remaining
   static final DataPersistService _dataPersistService = DataPersistService();
+  static final DatabaseService _databaseService = DatabaseService();
 
   /// Calculate days remaining based on current scenario
   static Future<Map<String, dynamic>> calculateDaysRemaining({
@@ -12,8 +13,6 @@ class ResultsCalculator {
     double perPersonUsage = 200.0,
   }) async {
     try {
-      // final prefs = await SharedPreferences.getInstance();
-
       // Get current inventory from tanks
       final currentInventory = await _getCurrentInventory();
 
@@ -40,9 +39,6 @@ class ResultsCalculator {
   /// Get current water inventory from all tanks
   static Future<int> _getCurrentInventory() async {
     try {
-      // final prefs = await SharedPreferences.getInstance();
-      // final String? savedTanksData = prefs.getString(_tanksKey);
-
       final tankData = await _dataPersistService.loadTankData();
       final tanks = tankData['tanks'] as List;
 
@@ -64,10 +60,10 @@ class ResultsCalculator {
     try {
       final waterUsageData = await _dataPersistService.loadWaterUsageData();
       final personWaterUsageList =
-          waterUsageData['personWaterUsageList'] as List;
+          waterUsageData['personWaterUsageList'] as List<int>;
 
       return personWaterUsageList
-          .fold(0, (sum, usage) => (sum + usage) as int)
+          .fold<int>(0, (sum, usage) => sum + usage)
           .toDouble();
     } catch (e) {
       return 200.0; // Default fallback
@@ -90,16 +86,14 @@ class ResultsCalculator {
     }
   }
 
-  /// Get historical rainfall statistics (min, median, max) for each month
+  /// Get historical rainfall statistics - OPTIMIZED to reduce API calls
   static Future<Map<String, Map<String, double>>>
   _getHistoricalRainfallStats() async {
     try {
-      // get postcode from data persist service
+      // Get postcode from data persist service
       final locationData = await _dataPersistService.loadLocationData();
       final postcode = locationData['postcode'] ?? "5000";
 
-      // Get rainfall data directly from database service
-      final dbService = DatabaseService();
       final currentYear = DateTime.now().year;
 
       // Initialize stats structure
@@ -134,24 +128,16 @@ class ResultsCalculator {
         'Dec': [],
       };
 
-      // Get 10 years of data
-      for (int year = currentYear - 9; year <= currentYear; year++) {
-        try {
-          final monthlyData = await dbService.getMonthlyRainfall(
-            postcode: postcode,
-            year: year,
-            useCache: true,
-          );
+      // OPTIMIZATION: Batch fetch multiple years using DatabaseService
+      // This leverages caching and reduces redundant API calls
+      final List<Future<void>> fetchTasks = [];
 
-          for (final monthData in monthlyData) {
-            final monthName = _getMonthName(monthData.month);
-            monthlyRainfallData[monthName]!.add(monthData.totalRainfall);
-          }
-        } catch (e) {
-          print('Failed to get data for year $year: $e');
-          // Continue with other years
-        }
+      for (int year = currentYear - 9; year <= currentYear; year++) {
+        fetchTasks.add(_fetchYearData(postcode, year, monthlyRainfallData));
       }
+
+      // Wait for all years to be fetched concurrently
+      await Future.wait(fetchTasks);
 
       // Calculate statistics for each month
       monthlyRainfallData.forEach((month, rainfallValues) {
@@ -186,16 +172,38 @@ class ResultsCalculator {
     }
   }
 
+  /// Helper method to fetch data for a single year
+  static Future<void> _fetchYearData(
+    String postcode,
+    int year,
+    Map<String, List<double>> monthlyRainfallData,
+  ) async {
+    try {
+      // Use DatabaseService which leverages caching
+      final monthlyData = await _databaseService.getMonthlyRainfall(
+        postcode: postcode,
+        year: year,
+        useCache: true,
+      );
+
+      for (final monthData in monthlyData) {
+        final monthName = _getMonthName(monthData.month);
+        monthlyRainfallData[monthName]!.add(monthData.totalRainfall);
+      }
+    } catch (e) {
+      print('Failed to get data for year $year: $e');
+      // Continue with other years - don't fail the entire operation
+    }
+  }
+
   /// Get monthly water intake based on rainfall scenario
   static Future<Map<String, double>> _getMonthlyWaterIntake(
     String scenario,
   ) async {
     try {
-      final locationData = await _dataPersistService.loadLocationData();
       final roofCatchmentData =
           await _dataPersistService.loadRoofCatchmentData();
 
-      final postcode = locationData['postcode'] ?? "5000";
       final roofCatchmentArea =
           double.tryParse(roofCatchmentData['roofCatchmentArea']) ?? 100.0;
       final otherIntakeDailyL =
@@ -434,7 +442,6 @@ class ResultsCalculator {
       // Ensure level doesn't go below 0
       if (currentLevel < 0) currentLevel = 0;
 
-      // TODO: Sort date
       projectedData.add({
         'day': day,
         'date': projectedDate.toIso8601String().split('T')[0],
