@@ -225,115 +225,113 @@ class _RoofCatchmentViewState extends State<RoofCatchmentView> {
                     },
                   ),
                 ),
-                knowRoofCatchment
-                    ? SizedBox.shrink()
-                    : Tooltip(
-                      message: "Learn to measure roof catchment area",
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(maxWidth: 500),
-                        child: InkWell(
-                          borderRadius: kBorderRadius,
-                          onTap: () {
-                            // Handle button press animation
-                            setState(() {
-                              learnToMeasureIsPressed = true;
-                            });
-                            Future.delayed(
-                              const Duration(milliseconds: 150),
-                            ).then((value) {
-                              setState(() {
-                                learnToMeasureIsPressed = false;
-                              });
-                            });
+                Tooltip(
+                  message: "Learn to measure roof catchment area",
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: 500),
+                    child: InkWell(
+                      borderRadius: kBorderRadius,
+                      onTap: () {
+                        // Handle button press animation
+                        setState(() {
+                          learnToMeasureIsPressed = true;
+                        });
+                        Future.delayed(const Duration(milliseconds: 150)).then((
+                          value,
+                        ) {
+                          setState(() {
+                            learnToMeasureIsPressed = false;
+                          });
+                        });
 
-                            // TODO: Add instructional video to measure roof catchment on Maps?
+                        // TODO: Add instructional video to measure roof catchment on Maps?
 
-                            // Show information dialog
-                            showDialog(
-                              context: context,
-                              builder:
-                                  (context) => AlertDialog(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: kBorderRadius,
-                                      side: kBorderSide,
-                                    ),
-                                    title: Text(
-                                      'How to Measure Roof Catchment Area',
-                                      style: subHeadingStyle,
-                                    ),
-                                    content: SingleChildScrollView(
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            '1. Measure the length and width of your roof in metres',
-                                            style: TextStyle(fontSize: 14),
-                                          ),
-                                          SizedBox(height: 8),
-                                          Text(
-                                            '2. Multiply length × width = area in m²',
-                                            style: TextStyle(fontSize: 14),
-                                          ),
-                                          SizedBox(height: 8),
-                                          Text(
-                                            '3. For complex roofs, break into rectangles and add areas together',
-                                            style: TextStyle(fontSize: 14),
-                                          ),
-                                          SizedBox(height: 8),
-                                          Text(
-                                            '4. Only include areas that drain into your tank system',
-                                            style: TextStyle(fontSize: 14),
-                                          ),
-                                          SizedBox(height: 16),
-                                          Text(
-                                            'Example: 10m × 8m roof = 80m² catchment area',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ],
+                        // Show information dialog
+                        showDialog(
+                          context: context,
+                          builder:
+                              (context) => AlertDialog(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: kBorderRadius,
+                                  side: kBorderSide,
+                                ),
+                                title: Text(
+                                  'How to Measure Roof Catchment Area',
+                                  style: subHeadingStyle,
+                                ),
+                                content: SingleChildScrollView(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '1. Measure the length and width of your roof in metres',
+                                        style: TextStyle(fontSize: 14),
                                       ),
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed:
-                                            () => Navigator.of(context).pop(),
-                                        child: const Text(
-                                          "Got it!",
-                                          style: TextStyle(color: black),
+                                      SizedBox(height: 8),
+                                      Text(
+                                        '2. Multiply length × width = area in m²',
+                                        style: TextStyle(fontSize: 14),
+                                      ),
+                                      SizedBox(height: 8),
+                                      Text(
+                                        '3. For complex roofs, break into rectangles and add areas together',
+                                        style: TextStyle(fontSize: 14),
+                                      ),
+                                      SizedBox(height: 8),
+                                      Text(
+                                        '4. Only include areas that drain into your tank system',
+                                        style: TextStyle(fontSize: 14),
+                                      ),
+                                      SizedBox(height: 16),
+                                      Text(
+                                        'Example: 10m × 8m roof = 80m² catchment area',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.bold,
                                         ),
                                       ),
                                     ],
                                   ),
-                            );
-                          },
-                          child: AnimatedContainer(
-                            width: mediaWidth * 0.8,
-                            duration: const Duration(milliseconds: 100),
-                            decoration: BoxDecoration(
-                              color: white,
-                              border: Border.all(color: black, width: 3),
-                              borderRadius: kBorderRadius,
-                              boxShadow: [
-                                learnToMeasureIsPressed ? BoxShadow() : kShadow,
-                              ],
-                            ),
-                            child: Padding(
-                              padding: EdgeInsets.all(16),
-                              child: Center(
-                                child: Text(
-                                  "Learn how to measure",
-                                  style: subHeadingStyle,
                                 ),
+                                actions: [
+                                  TextButton(
+                                    onPressed:
+                                        () => Navigator.of(context).pop(),
+                                    child: const Text(
+                                      "Got it!",
+                                      style: TextStyle(color: black),
+                                    ),
+                                  ),
+                                ],
                               ),
+                        );
+                      },
+                      child: AnimatedContainer(
+                        width: mediaWidth * 0.8,
+                        duration: const Duration(milliseconds: 100),
+                        decoration: BoxDecoration(
+                          color: white,
+                          border: Border.all(color: black, width: 3),
+                          borderRadius: kBorderRadius,
+                          boxShadow: [
+                            learnToMeasureIsPressed ? BoxShadow() : kShadow,
+                          ],
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Center(
+                            child: Text(
+                              "Learn how to measure",
+                              style: subHeadingStyle,
                             ),
                           ),
                         ),
                       ),
                     ),
+                  ),
+                ),
                 // Input catchment area m2
                 ConstrainedWidthWidget(
                   child: InputFieldWidget(

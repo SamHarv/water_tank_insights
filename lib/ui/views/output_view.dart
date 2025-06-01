@@ -438,7 +438,10 @@ class _OutputViewState extends State<OutputView> {
                             "Based on current usage and selected rainfall pattern",
                             style: TextStyle(fontSize: 12, color: Colors.grey),
                           ),
-                          _buildProjectionChart(),
+                          // TODO: don't display chart if 0 days left
+                          // if numTanks != 0 build chart
+                          if (tankSummary['numTanks'] != 0)
+                            _buildProjectionChart(),
                         ],
                       ),
                     ),
