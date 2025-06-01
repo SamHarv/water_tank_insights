@@ -939,7 +939,7 @@ class _TankInventoryViewState extends State<TankInventoryView> {
               if (states['knowTankCapacity']!) ...[
                 InputFieldWidget(
                   controller: controllers['capacity']!,
-                  label: "Tank capacity (L)",
+                  label: "Tank capacity (litres)",
                   onChanged: (value) {
                     try {
                       if (tankControllers[tankIndex]['capacity']!
@@ -985,7 +985,8 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                       if (tankStates[tankIndex]['knowTankCapacity']!) {
                         tankStates[tankIndex]['knowTankWaterLevel'] = true;
                         showAlertDialog(
-                          "You must input tank level if you know the tank's capacity.",
+                          "You must input current inventory (litres) if you "
+                          "know the tank's capacity (litres).",
                         );
                       } else {
                         tankStates[tankIndex]['knowTankWaterLevel'] =
@@ -1012,7 +1013,7 @@ class _TankInventoryViewState extends State<TankInventoryView> {
               if (states['knowTankWaterLevel']!) ...[
                 InputFieldWidget(
                   controller: controllers['waterLevel']!,
-                  label: "Tank level (L)",
+                  label: "Tank level (litres)",
                   onChanged: (value) {
                     try {
                       if (tankControllers[tankIndex]['waterLevel']!
@@ -1101,7 +1102,7 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                       Expanded(
                         child: InputFieldWidget(
                           controller: controllers['length']!,
-                          label: "Length (m)",
+                          label: "Length (metres)",
                           onChanged: (value) {
                             try {
                               if (tankControllers[tankIndex]['length']!
@@ -1123,7 +1124,7 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                       Expanded(
                         child: InputFieldWidget(
                           controller: controllers['width']!,
-                          label: "Width (m)",
+                          label: "Width (metres)",
                           onChanged: (value) {
                             try {
                               if (tankControllers[tankIndex]['width']!
@@ -1150,7 +1151,7 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                   // Input diameter
                   InputFieldWidget(
                     controller: controllers['diameter']!,
-                    label: "Diameter (m)",
+                    label: "Diameter (metres)",
                     onChanged: (value) {
                       try {
                         if (tankControllers[tankIndex]['diameter']!
@@ -1173,7 +1174,7 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                 ),
                 InputFieldWidget(
                   controller: controllers['height']!,
-                  label: "Height (m)",
+                  label: "Height (metres)",
                   onChanged: (value) {
                     try {
                       if (tankControllers[tankIndex]['height']!
@@ -1203,7 +1204,7 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                   label:
                       states['knowTankCapacity']!
                           ? "Percentage estimate (%)"
-                          : "Water Level (m)",
+                          : "Water Level (metres)",
                   onChanged: (value) {
                     try {
                       if (controllers['waterHeight']!.text.isNotEmpty) {
