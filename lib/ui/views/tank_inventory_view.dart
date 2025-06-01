@@ -213,7 +213,7 @@ class _TankInventoryViewState extends State<TankInventoryView> {
 
   // Update number of tanks
   void _updateTankCount(int newCount) async {
-    if (newCount < 0 || newCount > 20) return;
+    if (newCount < 1 || newCount > 20) return;
 
     setState(() {
       _removeListeners();
@@ -264,7 +264,7 @@ class _TankInventoryViewState extends State<TankInventoryView> {
       _addListeners();
     });
 
-    _saveData(); // Save data
+    await _saveData(); // Save data
   }
 
   // Save data to SharedPreferences
@@ -541,9 +541,9 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                         // Parse input to int
                         int newCount = int.parse(value);
                         // Control range
-                        if (newCount > 20) {
+                        if (newCount > 20 || newCount < 1) {
                           showAlertDialog(
-                            "Please enter a number between 0 and 20",
+                            "Please enter a number between 1 and 20",
                           );
                           numOfTanksController.text = numOfTanks.toString();
                           return;
@@ -552,14 +552,14 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                       } catch (e) {
                         if (value.isNotEmpty) {
                           showAlertDialog(
-                            "Please enter a valid number between 0 and 20",
+                            "Please enter a valid number between 1 and 20",
                           );
                           numOfTanksController.text = numOfTanks.toString();
                         }
                       }
                     },
                     controller: numOfTanksController,
-                    label: "Number of tanks (0-20)",
+                    label: "Number of tanks (1-20)",
                   ),
                 ),
 

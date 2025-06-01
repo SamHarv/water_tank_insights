@@ -1,3 +1,4 @@
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:math' as math;
@@ -441,9 +442,11 @@ class ResultsCalculator {
       // Ensure level doesn't go below 0
       if (currentLevel < 0) currentLevel = 0;
 
+      // TODO: Sort date
       projectedData.add({
         'day': day,
         'date': projectedDate.toIso8601String().split('T')[0],
+        'dateFormatted': DateFormat('dd MMM').format(projectedDate),
         'waterLevel': currentLevel.round(),
         'dailyIntake': dailyIntake,
         'dailyUsage': dailyUsage,
@@ -490,7 +493,7 @@ class ResultsCalculator {
           'currentInventory': 0,
           'availableSpace': 0,
           'fillPercentage': 0.0,
-          'tankCount': 0,
+          'numTanks': 0, // ← Change this
         };
       }
 
@@ -512,7 +515,7 @@ class ResultsCalculator {
         'currentInventory': totalInventory,
         'availableSpace': availableSpace,
         'fillPercentage': fillPercentage,
-        'tankCount': tankDataList.length,
+        'numTanks': tankDataList.length, // ← Change this
       };
     } catch (e) {
       return {
@@ -520,7 +523,7 @@ class ResultsCalculator {
         'currentInventory': 0,
         'availableSpace': 0,
         'fillPercentage': 0.0,
-        'tankCount': 0,
+        'numTanks': 0, // ← Change this
       };
     }
   }

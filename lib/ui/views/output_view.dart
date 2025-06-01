@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
@@ -43,6 +45,27 @@ class _OutputViewState extends State<OutputView> {
     _calculateResults();
   }
 
+  // Show alert dialog
+  void _showAlertDialog(String message) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: kBorderRadius,
+              side: kBorderSide,
+            ),
+            title: Text(message, style: subHeadingStyle),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text("OK", style: TextStyle(color: black)),
+              ),
+            ],
+          ),
+    );
+  }
+
   Future<void> _calculateResults() async {
     setState(() {
       isLoading = true;
@@ -81,7 +104,7 @@ class _OutputViewState extends State<OutputView> {
 
   Widget _buildProjectionChart() {
     if (projectedData.isEmpty) {
-      return Container(
+      return SizedBox(
         height: 200,
         child: Center(
           child: Text(
@@ -137,9 +160,10 @@ class _OutputViewState extends State<OutputView> {
                 getTitlesWidget: (value, meta) {
                   final index = value.toInt();
                   if (index >= 0 && index < projectedData.length) {
-                    final date = DateTime.parse(projectedData[index]['date']);
+                    // final date = DateTime.parse(projectedData[index]['date']);
+                    final date = projectedData[index]['date'];
                     return Text(
-                      '${date.day}/${date.month}',
+                      projectedData[index]['dateFormatted'],
                       style: TextStyle(
                         color: black,
                         fontSize: 10,
@@ -438,10 +462,8 @@ class _OutputViewState extends State<OutputView> {
                             "Based on current usage and selected rainfall pattern",
                             style: TextStyle(fontSize: 12, color: Colors.grey),
                           ),
-                          // TODO: don't display chart if 0 days left
-                          // if numTanks != 0 build chart
-                          if (tankSummary['numTanks'] != 0)
-                            _buildProjectionChart(),
+
+                          _buildProjectionChart(),
                         ],
                       ),
                     ),
@@ -496,63 +518,92 @@ class _OutputViewState extends State<OutputView> {
                 // ),
 
                 // Rainfall pattern dropdown
-                Tooltip(
-                  message: "Select assumed rainfall pattern for projections",
-                  child: ConstrainedWidthWidget(
-                    child: DropdownMenu<String>(
-                      width: mediaWidth * 0.8,
-                      initialSelection: selectedRainfall,
-                      dropdownMenuEntries: [
-                        DropdownMenuEntry(
-                          value: "No Rainfall",
-                          label: "No Rainfall",
-                        ),
-                        DropdownMenuEntry(
-                          value: "Lowest recorded",
-                          label: "Lowest recorded (10 yr)",
-                        ),
-                        DropdownMenuEntry(
-                          value: "10-year median",
-                          label: "10-year median",
-                        ),
-                        DropdownMenuEntry(
-                          value: "Highest recorded",
-                          label: "Highest recorded (10 yr)",
-                        ),
-                      ],
-                      label: Text("Rainfall Pattern", style: inputFieldStyle),
-                      menuStyle: MenuStyle(
-                        maximumSize: WidgetStateProperty.all(
-                          Size.fromWidth(500),
-                        ),
-                        backgroundColor: WidgetStateProperty.all(white),
-                        elevation: WidgetStateProperty.all(8),
-                        shape: WidgetStateProperty.all(
-                          RoundedRectangleBorder(
-                            borderRadius: kBorderRadius,
-                            side: kBorderSide,
+                ConstrainedWidthWidget(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    spacing: 16,
+                    children: [
+                      Expanded(
+                        child: Tooltip(
+                          message:
+                              "Select assumed rainfall pattern for projections",
+                          child: DropdownMenu<String>(
+                            width: double.infinity,
+                            //mediaWidth * 0.8,
+                            initialSelection: selectedRainfall,
+                            dropdownMenuEntries: [
+                              DropdownMenuEntry(
+                                value: "No Rainfall",
+                                label: "No Rainfall",
+                              ),
+                              DropdownMenuEntry(
+                                value: "Lowest recorded",
+                                label: "Lowest recorded (10 yr)",
+                              ),
+                              DropdownMenuEntry(
+                                value: "10-year median",
+                                label: "10-year median",
+                              ),
+                              DropdownMenuEntry(
+                                value: "Highest recorded",
+                                label: "Highest recorded (10 yr)",
+                              ),
+                            ],
+                            label: Text(
+                              "Rainfall Pattern",
+                              style: inputFieldStyle,
+                            ),
+                            menuStyle: MenuStyle(
+                              maximumSize: WidgetStateProperty.all(
+                                Size.fromWidth(500),
+                              ),
+                              backgroundColor: WidgetStateProperty.all(white),
+                              elevation: WidgetStateProperty.all(8),
+                              shape: WidgetStateProperty.all(
+                                RoundedRectangleBorder(
+                                  borderRadius: kBorderRadius,
+                                  side: kBorderSide,
+                                ),
+                              ),
+                            ),
+                            inputDecorationTheme: InputDecorationTheme(
+                              border: inputBorder,
+                              enabledBorder: inputBorder,
+                              focusedBorder: inputBorder,
+                              filled: true,
+                              fillColor: white,
+                              labelStyle: inputFieldStyle,
+                            ),
+                            textStyle: inputFieldStyle,
+                            hintText: "Select rainfall pattern",
+                            onSelected: (rainfall) {
+                              if (rainfall != null) {
+                                setState(() {
+                                  selectedRainfall = rainfall;
+                                });
+                                _calculateResults(); // Recalculate with new scenario
+                              }
+                            },
                           ),
                         ),
                       ),
-                      inputDecorationTheme: InputDecorationTheme(
-                        border: inputBorder,
-                        enabledBorder: inputBorder,
-                        focusedBorder: inputBorder,
-                        filled: true,
-                        fillColor: white,
-                        labelStyle: inputFieldStyle,
+                      // Question mark icon to launch dialog to explain patterns
+                      IconButton(
+                        icon: Icon(Icons.help, color: white),
+                        tooltip: "Learn more about rainfall patterns",
+                        onPressed:
+                            () => _showAlertDialog(
+                              "Rainfall pattern is the assumption made about "
+                              "rainfall in your area based on data from the "
+                              "last 10 years for each given month.\n\n"
+                              "If one month has less rainfall than the last, "
+                              "you may see a downward inflection in your water "
+                              "level projection chart.\n\n"
+                              "The higher the rainfall pattern you select, "
+                              "the more water intake you will have over time.",
+                            ),
                       ),
-                      textStyle: inputFieldStyle,
-                      hintText: "Select rainfall pattern",
-                      onSelected: (rainfall) {
-                        if (rainfall != null) {
-                          setState(() {
-                            selectedRainfall = rainfall;
-                          });
-                          _calculateResults(); // Recalculate with new scenario
-                        }
-                      },
-                    ),
+                    ],
                   ),
                 ),
 
