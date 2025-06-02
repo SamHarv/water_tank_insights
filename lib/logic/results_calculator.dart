@@ -135,20 +135,22 @@ class ResultsCalculator {
       // This leverages caching and reduces redundant API calls
       final List<Future<void>> fetchTasks = [];
 
-      for (int year = currentYear - 9; year <= currentYear; year++) {
+      for (int year = currentYear - 10; year <= currentYear - 1; year++) {
         fetchTasks.add(_fetchYearData(postcode, year, monthlyRainfallData));
       }
 
       // Wait for all years to be fetched concurrently
       await Future.wait(fetchTasks);
 
+      // print(monthlyRainfallData.toString());
+
       // Calculate statistics for each month
       monthlyRainfallData.forEach((month, rainfallValues) {
         if (rainfallValues.isNotEmpty) {
           rainfallValues.sort();
+          // print(rainfallValues.toString());
           monthlyStats[month] = {
-            'min': rainfallValues[1],
-            //rainfallValues.first,
+            'min': rainfallValues.first,
             'median': calculateMedian(rainfallValues),
             'max': rainfallValues.last,
           };
