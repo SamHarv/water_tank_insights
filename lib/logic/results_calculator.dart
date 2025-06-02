@@ -142,7 +142,9 @@ class ResultsCalculator {
       // Wait for all years to be fetched concurrently
       await Future.wait(fetchTasks);
 
-      // print(monthlyRainfallData.toString());
+      // TODO: rainfall stats here
+
+      print(monthlyRainfallData.toString());
 
       // Calculate statistics for each month
       monthlyRainfallData.forEach((month, rainfallValues) {

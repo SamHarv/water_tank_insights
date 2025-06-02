@@ -1,16 +1,8 @@
-# water_tank_insights
+# AquaBalance
 
-A new Flutter project.
+Helping communities conserve precious water through predictive modelling and education.
 
-## Getting Started
+Estimate how many days of water inventory you have in your water tank based on current inventory, predicted rainfall, and estimated water usage to better manage your supply.
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Supported Platforms
+- [Web](https://water-tank-insights.web.app/)

@@ -11,7 +11,7 @@ plugins {
 android {
     namespace = "com.o2tech.water_tank_insights"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = 27.0.12077973
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
