@@ -10,6 +10,7 @@ import '/ui/widgets/constrained_width_widget.dart';
 import '/config/constants.dart';
 
 class OutputView extends StatefulWidget {
+  /// [OutputView] to display results of tool
   const OutputView({super.key});
 
   @override
@@ -66,6 +67,7 @@ class _OutputViewState extends State<OutputView> {
     );
   }
 
+  // Calculate results
   Future<void> _calculateResults() async {
     setState(() {
       isLoading = true;
@@ -73,7 +75,7 @@ class _OutputViewState extends State<OutputView> {
     });
 
     try {
-      // Calculate days remaining and other metrics
+      // Calculate days remaining
       final results = await ResultsCalculator.calculateDaysRemaining(
         rainfallScenario: selectedRainfall,
         perPersonUsage: perPersonUsage,
@@ -102,6 +104,7 @@ class _OutputViewState extends State<OutputView> {
     }
   }
 
+  // Build projection chart
   Widget _buildProjectionChart() {
     if (projectedData.isEmpty) {
       return SizedBox(
@@ -161,7 +164,7 @@ class _OutputViewState extends State<OutputView> {
                   final index = value.toInt();
                   if (index >= 0 && index < projectedData.length) {
                     return Text(
-                      projectedData[index]['dateFormatted'],
+                      projectedData[index]['dateFormatted'], // 00 Mmm format
                       style: TextStyle(
                         color: black,
                         fontSize: 10,
@@ -238,6 +241,7 @@ class _OutputViewState extends State<OutputView> {
     );
   }
 
+  // Build results cards
   Widget _buildResultsCards() {
     return Column(
       spacing: 16,
@@ -383,6 +387,7 @@ class _OutputViewState extends State<OutputView> {
   Widget build(BuildContext context) {
     final mediaWidth = MediaQuery.sizeOf(context).width;
 
+    // Loading screen
     if (isLoading) {
       return Scaffold(
         appBar: buildAppBar(context),
@@ -399,6 +404,7 @@ class _OutputViewState extends State<OutputView> {
       );
     }
 
+    // Error screen
     if (errorMessage != null) {
       return Scaffold(
         appBar: buildAppBar(context),
@@ -757,6 +763,7 @@ class _OutputViewState extends State<OutputView> {
                             isPressed = false;
                           });
                           Navigator.pushAndRemoveUntil(
+                            // ignore: use_build_context_synchronously
                             context,
                             MaterialPageRoute(builder: (context) => HomeView()),
                             (route) => false,

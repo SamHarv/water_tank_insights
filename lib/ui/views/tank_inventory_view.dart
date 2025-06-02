@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../logic/services/data_persist_service.dart';
 import '/logic/tank_volume_calculator.dart';
-import 'water_usage_view.dart';
 import '/ui/widgets/constrained_width_widget.dart';
 import '/ui/widgets/input_field_widget.dart';
 import '../../config/constants.dart';
@@ -360,6 +359,16 @@ class _TankInventoryViewState extends State<TankInventoryView> {
       tankResults.add(
         "Tank ${i + 1}: ${tank.capacity}L capacity, ${tank.waterLevel}L current",
       );
+
+      // If don't know capacity and do know how full tank is, waterLevel cannot be greater than capacity
+      if (!tankStates[i]['knowTankCapacity']! &&
+          tankStates[i]['knowTankWaterLevel']! &&
+          tank.waterLevel > tank.capacity) {
+        showAlertDialog(
+          "Water level cannot be greater than capacity for Tank ${i + 1}",
+        );
+        return;
+      }
     }
 
     // Show results dialog
@@ -433,22 +442,22 @@ class _TankInventoryViewState extends State<TankInventoryView> {
   }
 
   // Continue with 0 tanks - skip roof catchment and go directly to water usage
-  void _continueWithZeroTanks() async {
-    // Clear tanks and roof catchment data
-    tanks.clear();
-    tankStates.clear();
-    tankControllers.clear();
+  // void _continueWithZeroTanks() async {
+  //   // Clear tanks and roof catchment data
+  //   tanks.clear();
+  //   tankStates.clear();
+  //   tankControllers.clear();
 
-    // Save the cleared state
-    await _saveData();
+  //   // Save the cleared state
+  //   await _saveData();
 
-    // Navigate directly to water usage view, skipping roof catchment
-    Navigator.push(
-      // ignore: use_build_context_synchronously
-      context,
-      MaterialPageRoute(builder: (context) => WaterUsageView()),
-    );
-  }
+  //   // Navigate directly to water usage view, skipping roof catchment
+  //   Navigator.push(
+  //     // ignore: use_build_context_synchronously
+  //     context,
+  //     MaterialPageRoute(builder: (context) => WaterUsageView()),
+  //   );
+  // }
 
   @override
   void dispose() {
@@ -768,42 +777,42 @@ class _TankInventoryViewState extends State<TankInventoryView> {
                   ),
 
                   // Continue button for 0 tanks - skips roof catchment
-                  Tooltip(
-                    message: "Continue to water usage (skip roof catchment)",
-                    child: ConstrainedWidthWidget(
-                      child: InkWell(
-                        borderRadius: kBorderRadius,
-                        onTap: () {
-                          setState(() {
-                            isPressed = true;
-                          });
-                          Future.delayed(
-                            const Duration(milliseconds: 150),
-                          ).then((value) {
-                            setState(() {
-                              isPressed = false;
-                            });
-                            _continueWithZeroTanks();
-                          });
-                        },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 100),
-                          decoration: BoxDecoration(
-                            color: white,
-                            border: Border.all(color: black, width: 3),
-                            borderRadius: kBorderRadius,
-                            boxShadow: [isPressed ? BoxShadow() : kShadow],
-                          ),
-                          child: Padding(
-                            padding: EdgeInsets.all(16),
-                            child: Center(
-                              child: Text("Continue", style: subHeadingStyle),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+                  // Tooltip(
+                  //   message: "Continue to water usage (skip roof catchment)",
+                  //   child: ConstrainedWidthWidget(
+                  //     child: InkWell(
+                  //       borderRadius: kBorderRadius,
+                  //       onTap: () {
+                  //         setState(() {
+                  //           isPressed = true;
+                  //         });
+                  //         Future.delayed(
+                  //           const Duration(milliseconds: 150),
+                  //         ).then((value) {
+                  //           setState(() {
+                  //             isPressed = false;
+                  //           });
+                  //           _continueWithZeroTanks();
+                  //         });
+                  //       },
+                  //       child: AnimatedContainer(
+                  //         duration: const Duration(milliseconds: 100),
+                  //         decoration: BoxDecoration(
+                  //           color: white,
+                  //           border: Border.all(color: black, width: 3),
+                  //           borderRadius: kBorderRadius,
+                  //           boxShadow: [isPressed ? BoxShadow() : kShadow],
+                  //         ),
+                  //         child: Padding(
+                  //           padding: EdgeInsets.all(16),
+                  //           child: Center(
+                  //             child: Text("Continue", style: subHeadingStyle),
+                  //           ),
+                  //         ),
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
                 ],
               ],
             ),
@@ -1153,7 +1162,6 @@ class _TankInventoryViewState extends State<TankInventoryView> {
               ],
 
               // Current water level (if not known)
-              // gugvuy
               if (!states['knowTankWaterLevel']!) ...[
                 Text(
                   states['knowTankCapacity']!

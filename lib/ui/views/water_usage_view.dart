@@ -72,7 +72,7 @@ class _WaterUsageViewState extends State<WaterUsageView> {
     }
   }
 
-  // Initialize all lists with proper sizes and default values
+  // Initialise all lists with proper sizes and default values
   void _initialiseLists(
     int numPeople,
     List<int> savedUsageList,
@@ -88,7 +88,7 @@ class _WaterUsageViewState extends State<WaterUsageView> {
     }
     manualInputControllers.clear();
 
-    // Initialize lists with proper size
+    // Initialise lists with proper size
     for (int i = 0; i < numPeople; i++) {
       // Use saved usage or default to 200L
       final usage = i < savedUsageList.length ? savedUsageList[i] : 200;

@@ -16,7 +16,7 @@ class UrlLauncher {
     await _launchUrl(url);
   }
 
-  // Fallback method using url_launcher package
+  // Launch a URL
   static Future<void> _launchUrl(String urlString) async {
     final Uri url = Uri.parse(urlString);
 

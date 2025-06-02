@@ -4,6 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/models/tank_model.dart';
 
 class DataPersistService {
+  /// [DataPersistService] to manage access to shared preferences and persist data
+
   // SharedPreferences keys
   static const String _tanksKey = 'tanks_data';
   static const String _tankCountKey = 'tank_count';
@@ -23,46 +25,56 @@ class DataPersistService {
   factory DataPersistService() => _instance;
   DataPersistService._internal();
 
-  // Generic helper methods
+  // Get shared preferences instance
   Future<SharedPreferences> _getPrefs() async {
     return await SharedPreferences.getInstance();
   }
 
-  // ======================
-  // TANK DATA OPERATIONS
-  // ======================
+  // TANK INVENTORY OPERATIONS
 
+  // Save tank inventory data
   Future<void> saveTankData({
     required int tankCount,
     required List<Tank> tanks,
     required List<Map<String, bool>> tankStates,
   }) async {
+    // Get instance of shared preferences
     final prefs = await _getPrefs();
 
+    // Set tank count
     await prefs.setInt(_tankCountKey, tankCount);
 
+    // Set tank data
     final tankDataList = tanks.map((tank) => tank.toJson()).toList();
     await prefs.setString(_tanksKey, json.encode(tankDataList));
 
+    // Set tank states
     await prefs.setString(_tankStatesKey, json.encode(tankStates));
   }
 
+  // Load tank inventory data
   Future<Map<String, dynamic>> loadTankData() async {
+    // Get shared preferences instance
     final prefs = await _getPrefs();
 
+    // Get tank count
     final int tankCount = prefs.getInt(_tankCountKey) ?? 1;
+    // Get tanks data
     final String? savedTanksData = prefs.getString(_tanksKey);
+    // Get tank states
     final String? savedStatesData = prefs.getString(_tankStatesKey);
 
     List<Tank> tanks = [];
     List<Map<String, bool>> tankStates = [];
 
     if (savedTanksData != null) {
+      // Decode tank data
       final List<dynamic> tankDataList = json.decode(savedTanksData);
       tanks = tankDataList.map((tankData) => Tank.fromJson(tankData)).toList();
     }
 
     if (savedStatesData != null) {
+      // Decode tank states
       final List<dynamic> statesDataList = json.decode(savedStatesData);
       tankStates =
           statesDataList.map((state) {
@@ -79,21 +91,25 @@ class DataPersistService {
     return {'tankCount': tankCount, 'tanks': tanks, 'tankStates': tankStates};
   }
 
+  // Save tank count
   Future<void> saveTankCount(int count) async {
     final prefs = await _getPrefs();
     await prefs.setInt(_tankCountKey, count);
   }
 
+  // Load tank count
   Future<int> loadTankCount() async {
     final prefs = await _getPrefs();
     return prefs.getInt(_tankCountKey) ?? 1;
   }
 
+  // Save tank states
   Future<void> saveTankStates(List<Map<String, bool>> tankStates) async {
     final prefs = await _getPrefs();
     await prefs.setString(_tankStatesKey, json.encode(tankStates));
   }
 
+  // Load and decode tank states
   Future<List<Map<String, bool>>> loadTankStates() async {
     final prefs = await _getPrefs();
     final String? savedStatesData = prefs.getString(_tankStatesKey);
@@ -110,12 +126,14 @@ class DataPersistService {
     }).toList();
   }
 
+  // Save tank data
   Future<void> saveTanks(List<Tank> tanks) async {
     final prefs = await _getPrefs();
     final tankDataList = tanks.map((tank) => tank.toJson()).toList();
     await prefs.setString(_tanksKey, json.encode(tankDataList));
   }
 
+  // Load and decode tank data
   Future<List<Tank>> loadTanks() async {
     final prefs = await _getPrefs();
     final String? savedTanksData = prefs.getString(_tanksKey);
@@ -126,10 +144,9 @@ class DataPersistService {
     return tankDataList.map((tankData) => Tank.fromJson(tankData)).toList();
   }
 
-  // ======================
-  // LOCATION DATA OPERATIONS
-  // ======================
+  // LOCATION OPERATIONS
 
+  // Save location data
   Future<void> saveLocationData({
     String? postcode,
     required double year,
@@ -144,6 +161,7 @@ class DataPersistService {
     await prefs.setString(_timePeriodKey, timePeriod);
   }
 
+  // Load location data
   Future<Map<String, dynamic>> loadLocationData() async {
     final prefs = await _getPrefs();
 
@@ -154,40 +172,45 @@ class DataPersistService {
     };
   }
 
+  // Save postcode
   Future<void> savePostcode(String postcode) async {
     final prefs = await _getPrefs();
     await prefs.setString(_postcodeKey, postcode);
   }
 
+  // Load postcode
   Future<String?> loadPostcode() async {
     final prefs = await _getPrefs();
     return prefs.getString(_postcodeKey);
   }
 
+  // Save year
   Future<void> saveYear(double year) async {
     final prefs = await _getPrefs();
     await prefs.setDouble(_yearKey, year);
   }
 
+  // Load year
   Future<double> loadYear() async {
     final prefs = await _getPrefs();
     return prefs.getDouble(_yearKey) ?? DateTime.now().year.toDouble();
   }
 
+  // Save time period
   Future<void> saveTimePeriod(String timePeriod) async {
     final prefs = await _getPrefs();
     await prefs.setString(_timePeriodKey, timePeriod);
   }
 
+  // Load time period
   Future<String> loadTimePeriod() async {
     final prefs = await _getPrefs();
     return prefs.getString(_timePeriodKey) ?? "Monthly";
   }
 
-  // ======================
-  // ROOF CATCHMENT DATA OPERATIONS
-  // ======================
+  // ROOF CATCHMENT OPERATIONS
 
+  // Save roof catchment data
   Future<void> saveRoofCatchmentData({
     required bool knowRoofCatchment,
     required String roofCatchmentArea,
@@ -200,6 +223,7 @@ class DataPersistService {
     await prefs.setString(_otherIntakeKey, otherIntake);
   }
 
+  // Load roof catchment data
   Future<Map<String, dynamic>> loadRoofCatchmentData() async {
     final prefs = await _getPrefs();
 
@@ -210,40 +234,45 @@ class DataPersistService {
     };
   }
 
+  // Save know roof catchment bool
   Future<void> saveKnowRoofCatchment(bool knowRoofCatchment) async {
     final prefs = await _getPrefs();
     await prefs.setBool(_knowRoofCatchmentKey, knowRoofCatchment);
   }
 
+  // Load know roof catchment bool
   Future<bool> loadKnowRoofCatchment() async {
     final prefs = await _getPrefs();
     return prefs.getBool(_knowRoofCatchmentKey) ?? false;
   }
 
+  // Save roof catchment area
   Future<void> saveRoofCatchmentArea(String area) async {
     final prefs = await _getPrefs();
     await prefs.setString(_roofCatchmentAreaKey, area);
   }
 
+  // Load roof catchment area
   Future<String> loadRoofCatchmentArea() async {
     final prefs = await _getPrefs();
     return prefs.getString(_roofCatchmentAreaKey) ?? '';
   }
 
+  // Save other intake
   Future<void> saveOtherIntake(String intake) async {
     final prefs = await _getPrefs();
     await prefs.setString(_otherIntakeKey, intake);
   }
 
+  // Load other intake
   Future<String> loadOtherIntake() async {
     final prefs = await _getPrefs();
     return prefs.getString(_otherIntakeKey) ?? '';
   }
 
-  // ======================
-  // WATER USAGE DATA OPERATIONS
-  // ======================
+  // WATER USAGE OPERATIONS
 
+  // Save water usage data
   Future<void> saveWaterUsageData({
     required int numOfPeople,
     required List<int> personWaterUsageList,
@@ -262,6 +291,7 @@ class DataPersistService {
     );
   }
 
+  // Load and decode water usage data
   Future<Map<String, dynamic>> loadWaterUsageData() async {
     final prefs = await _getPrefs();
 
@@ -290,21 +320,25 @@ class DataPersistService {
     };
   }
 
+  // Save number of people
   Future<void> saveNumOfPeople(int numOfPeople) async {
     final prefs = await _getPrefs();
     await prefs.setInt(_numOfPeopleKey, numOfPeople);
   }
 
+  // Load number of people
   Future<int> loadNumOfPeople() async {
     final prefs = await _getPrefs();
     return prefs.getInt(_numOfPeopleKey) ?? 0;
   }
 
+  // Save person water usage list
   Future<void> savePersonWaterUsageList(List<int> usageList) async {
     final prefs = await _getPrefs();
     await prefs.setString(_personWaterUsageListKey, json.encode(usageList));
   }
 
+  // Load and decode person water usage list
   Future<List<int>> loadPersonWaterUsageList() async {
     final prefs = await _getPrefs();
     final savedUsageListString = prefs.getString(_personWaterUsageListKey);
@@ -315,11 +349,13 @@ class DataPersistService {
     return usageData.cast<int>();
   }
 
+  // Save is manual input list
   Future<void> saveIsManualInputList(List<bool> manualInputList) async {
     final prefs = await _getPrefs();
     await prefs.setString(_isManualInputListKey, json.encode(manualInputList));
   }
 
+  // Load and decode is manual input list
   Future<List<bool>> loadIsManualInputList() async {
     final prefs = await _getPrefs();
     final savedManualInputListString = prefs.getString(_isManualInputListKey);
@@ -332,9 +368,7 @@ class DataPersistService {
     return manualInputData.cast<bool>();
   }
 
-  // ======================
   // UTILITY METHODS
-  // ======================
 
   // Clear all data
   Future<void> clearAllData() async {
@@ -361,7 +395,7 @@ class DataPersistService {
     await prefs.remove(_isManualInputListKey);
   }
 
-  // Clear specific data sections
+  // Clear tank data
   Future<void> clearTankData() async {
     final prefs = await _getPrefs();
     await prefs.remove(_tanksKey);
@@ -369,6 +403,7 @@ class DataPersistService {
     await prefs.remove(_tankStatesKey);
   }
 
+  // Clear location data
   Future<void> clearLocationData() async {
     final prefs = await _getPrefs();
     await prefs.remove(_postcodeKey);
@@ -376,6 +411,7 @@ class DataPersistService {
     await prefs.remove(_timePeriodKey);
   }
 
+  // Clear roof catchment data
   Future<void> clearRoofCatchmentData() async {
     final prefs = await _getPrefs();
     await prefs.remove(_knowRoofCatchmentKey);
@@ -383,6 +419,7 @@ class DataPersistService {
     await prefs.remove(_otherIntakeKey);
   }
 
+  // Clear water usage data
   Future<void> clearWaterUsageData() async {
     final prefs = await _getPrefs();
     await prefs.remove(_numOfPeopleKey);
@@ -477,22 +514,25 @@ class DataPersistService {
     }
   }
 
-  // Check if data exists for different sections
+  // Check if tank data exists
   Future<bool> hasTankData() async {
     final prefs = await _getPrefs();
     return prefs.containsKey(_tanksKey);
   }
 
+  // Check if location data exists
   Future<bool> hasLocationData() async {
     final prefs = await _getPrefs();
     return prefs.containsKey(_postcodeKey);
   }
 
+  // Check if roof catchment data exists
   Future<bool> hasRoofCatchmentData() async {
     final prefs = await _getPrefs();
     return prefs.containsKey(_roofCatchmentAreaKey);
   }
 
+  // Check if water usage data exists
   Future<bool> hasWaterUsageData() async {
     final prefs = await _getPrefs();
     return prefs.containsKey(_numOfPeopleKey);

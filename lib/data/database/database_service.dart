@@ -12,7 +12,7 @@ class DatabaseService {
   factory DatabaseService() => _instance;
   DatabaseService._internal();
 
-  // Single method that handles both monthly and annual data
+  // Fetch rainfall data
   Future<Map<String, dynamic>> getRainfallData({
     required String postcode,
     required int year,
@@ -22,7 +22,7 @@ class DatabaseService {
   }) async {
     // Enforce year limits
     if (year < 1975 || year > 2025) {
-      return _buildRainfallResponse(
+      return buildRainfallResponse(
         _generateEmptyMonthlyData(),
         includeMonthly,
         includeAnnual,
@@ -33,12 +33,12 @@ class DatabaseService {
     if (useCache) {
       final cached = CacheService.getCachedMonthlyRainfall(postcode, year);
       if (cached != null) {
-        return _buildRainfallResponse(cached, includeMonthly, includeAnnual);
+        return buildRainfallResponse(cached, includeMonthly, includeAnnual);
       }
     }
 
     try {
-      // Fetch from API once
+      // Fetch from API
       final rainfallRecords = await RainfallApiService.getRainfallData(
         postcode: postcode,
         year: year,
@@ -52,7 +52,7 @@ class DatabaseService {
         CacheService.cacheMonthlyRainfall(postcode, year, monthlyData);
       }
 
-      return _buildRainfallResponse(monthlyData, includeMonthly, includeAnnual);
+      return buildRainfallResponse(monthlyData, includeMonthly, includeAnnual);
     } catch (e) {
       throw Exception('Failed to fetch rainfall data: $e');
     }
@@ -74,7 +74,8 @@ class DatabaseService {
         endDate.year,
       );
       if (cached != null) {
-        return _filterWeatherDataByDateRange(cached, startDate, endDate, limit);
+        // Return filtered by date range
+        return filterWeatherDataByDateRange(cached, startDate, endDate, limit);
       }
     }
 
@@ -97,7 +98,7 @@ class DatabaseService {
       }
 
       // Return filtered by date range
-      return _filterWeatherDataByDateRange(
+      return filterWeatherDataByDateRange(
         allWeatherData,
         startDate,
         endDate,
@@ -108,7 +109,7 @@ class DatabaseService {
     }
   }
 
-  // Keep existing methods for compatibility
+  // Get monthly rainfall
   Future<List<MonthlyRainfall>> getMonthlyRainfall({
     required String postcode,
     required int year,
@@ -140,11 +141,8 @@ class DatabaseService {
     return result['annualTotal'] as double;
   }
 
-  // ======================
-  // PRIVATE HELPER METHODS
-  // ======================
-
-  Map<String, dynamic> _buildRainfallResponse(
+  // Build response map
+  Map<String, dynamic> buildRainfallResponse(
     List<MonthlyRainfall> monthlyData,
     bool includeMonthly,
     bool includeAnnual,
@@ -196,7 +194,7 @@ class DatabaseService {
   }
 
   // Filter weather data by date range
-  List<WeatherData> _filterWeatherDataByDateRange(
+  List<WeatherData> filterWeatherDataByDateRange(
     List<WeatherData> data,
     DateTime startDate,
     DateTime endDate,
@@ -238,6 +236,7 @@ class DatabaseService {
       }
     }
 
+    // Generate monthly data
     return List.generate(12, (index) {
       final month = index + 1;
       return MonthlyRainfall(

@@ -35,7 +35,7 @@ class RainfallApiService {
         );
       }
     } catch (e) {
-      throw RainfallApiException('Failed to fetch rainfall data');
+      throw RainfallApiException('Failed to fetch rainfall data $e');
     }
   }
 

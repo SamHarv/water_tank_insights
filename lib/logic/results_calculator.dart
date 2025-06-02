@@ -7,7 +7,7 @@ class ResultsCalculator {
   static final DataPersistService _dataPersistService = DataPersistService();
   static final DatabaseService _databaseService = DatabaseService();
 
-  /// Calculate days remaining based on current scenario
+  // Calculate days remaining based on current scenario
   static Future<Map<String, dynamic>> calculateDaysRemaining({
     String rainfallScenario = "10-year median",
     double perPersonUsage = 200.0,
@@ -23,7 +23,7 @@ class ResultsCalculator {
       final monthlyIntake = await _getMonthlyWaterIntake(rainfallScenario);
 
       // Calculate net position and days remaining
-      final results = _calculateWaterBalance(
+      final results = calculateWaterBalance(
         currentInventory: currentInventory,
         dailyUsage: dailyUsage,
         monthlyIntake: monthlyIntake,
@@ -36,7 +36,7 @@ class ResultsCalculator {
     }
   }
 
-  /// Get current water inventory from all tanks
+  // Get current water inventory from all tanks
   static Future<int> _getCurrentInventory() async {
     try {
       final tankData = await _dataPersistService.loadTankData();
@@ -44,6 +44,7 @@ class ResultsCalculator {
 
       int totalInventory = 0;
 
+      // Sum inventory from all tanks
       for (var tank in tanks) {
         final waterLevel = tank.waterLevel ?? 0;
         totalInventory += waterLevel as int;
@@ -55,13 +56,14 @@ class ResultsCalculator {
     }
   }
 
-  /// Get daily water usage for household
+  // Get daily water usage for household
   static Future<double> _getDailyWaterUsage() async {
     try {
       final waterUsageData = await _dataPersistService.loadWaterUsageData();
       final personWaterUsageList =
           waterUsageData['personWaterUsageList'] as List<int>;
 
+      // Sum usage from all people
       return personWaterUsageList
           .fold<int>(0, (sum, usage) => sum + usage)
           .toDouble();
@@ -70,8 +72,8 @@ class ResultsCalculator {
     }
   }
 
-  /// Calculate median from a list of numbers
-  static double _calculateMedian(List<double> values) {
+  // Calculate median from a list of numbers
+  static double calculateMedian(List<double> values) {
     if (values.isEmpty) return 0.0;
 
     final sortedValues = List<double>.from(values)..sort();
@@ -86,17 +88,18 @@ class ResultsCalculator {
     }
   }
 
-  /// Get historical rainfall statistics - OPTIMIZED to reduce API calls
+  // Get historical rainfall statistics
   static Future<Map<String, Map<String, double>>>
   _getHistoricalRainfallStats() async {
     try {
       // Get postcode from data persist service
       final locationData = await _dataPersistService.loadLocationData();
+      // Default to Adelaide
       final postcode = locationData['postcode'] ?? "5000";
 
       final currentYear = DateTime.now().year;
 
-      // Initialize stats structure
+      // Initialise stats structure
       Map<String, Map<String, double>> monthlyStats = {
         'Jan': {'min': 0.0, 'median': 0.0, 'max': 0.0},
         'Feb': {'min': 0.0, 'median': 0.0, 'max': 0.0},
@@ -128,7 +131,7 @@ class ResultsCalculator {
         'Dec': [],
       };
 
-      // OPTIMIZATION: Batch fetch multiple years using DatabaseService
+      // Batch fetch multiple years using DatabaseService
       // This leverages caching and reduces redundant API calls
       final List<Future<void>> fetchTasks = [];
 
@@ -144,17 +147,19 @@ class ResultsCalculator {
         if (rainfallValues.isNotEmpty) {
           rainfallValues.sort();
           monthlyStats[month] = {
-            'min': rainfallValues.first,
-            'median': _calculateMedian(rainfallValues),
+            'min': rainfallValues[1],
+            //rainfallValues.first,
+            'median': calculateMedian(rainfallValues),
             'max': rainfallValues.last,
           };
         }
       });
 
+      print(monthlyStats.toString());
       return monthlyStats;
     } catch (e) {
-      print('Error getting historical rainfall stats: $e');
       // Return empty stats if error occurs
+      print("Error getting rainfall for this postcode!!!!");
       return {
         'Jan': {'min': 0.0, 'median': 0.0, 'max': 0.0},
         'Feb': {'min': 0.0, 'median': 0.0, 'max': 0.0},
@@ -172,14 +177,14 @@ class ResultsCalculator {
     }
   }
 
-  /// Helper method to fetch data for a single year
+  // Helper method to fetch data for a single year
   static Future<void> _fetchYearData(
     String postcode,
     int year,
     Map<String, List<double>> monthlyRainfallData,
   ) async {
     try {
-      // Use DatabaseService which leverages caching
+      // Use DatabaseService which leverages caching to avoid redundant API calls
       final monthlyData = await _databaseService.getMonthlyRainfall(
         postcode: postcode,
         year: year,
@@ -187,16 +192,16 @@ class ResultsCalculator {
       );
 
       for (final monthData in monthlyData) {
-        final monthName = _getMonthName(monthData.month);
+        final monthName = getMonthName(monthData.month);
         monthlyRainfallData[monthName]!.add(monthData.totalRainfall);
       }
     } catch (e) {
-      print('Failed to get data for year $year: $e');
+      throw 'Failed to get data for year $year: $e';
       // Continue with other years - don't fail the entire operation
     }
   }
 
-  /// Get monthly water intake based on rainfall scenario
+  // Get monthly water intake based on rainfall scenario
   static Future<Map<String, double>> _getMonthlyWaterIntake(
     String scenario,
   ) async {
@@ -242,7 +247,7 @@ class ResultsCalculator {
         final collectedWaterL = rainfallMm * roofCatchmentArea * 0.95;
 
         // Add other daily intake sources (converted to monthly)
-        final daysInMonth = _getDaysInMonth(month, currentYear);
+        final daysInMonth = getDaysInMonth(month, currentYear);
         final otherIntakeMonthlyL = otherIntakeDailyL * daysInMonth;
 
         monthlyIntake[month] = collectedWaterL + otherIntakeMonthlyL;
@@ -250,7 +255,6 @@ class ResultsCalculator {
 
       return monthlyIntake;
     } catch (e) {
-      print('Error calculating monthly water intake: $e');
       // Return minimal intake from other sources only
       final roofCatchmentData =
           await _dataPersistService.loadRoofCatchmentData();
@@ -274,8 +278,8 @@ class ResultsCalculator {
     }
   }
 
-  /// Get month name from month number
-  static String _getMonthName(int month) {
+  // Get month name from month number
+  static String getMonthName(int month) {
     const months = [
       'Jan',
       'Feb',
@@ -293,8 +297,8 @@ class ResultsCalculator {
     return months[month - 1];
   }
 
-  /// Get number of days in a month
-  static int _getDaysInMonth(String monthName, int year) {
+  // Get number of days in a month
+  static int getDaysInMonth(String monthName, int year) {
     const monthDays = {
       'Jan': 31,
       'Feb': 28,
@@ -313,20 +317,20 @@ class ResultsCalculator {
     int days = monthDays[monthName] ?? 30;
 
     // Handle leap year for February
-    if (monthName == 'Feb' && _isLeapYear(year)) {
+    if (monthName == 'Feb' && isLeapYear(year)) {
       days = 29;
     }
 
     return days;
   }
 
-  /// Check if year is a leap year
-  static bool _isLeapYear(int year) {
+  // Check if year is a leap year
+  static bool isLeapYear(int year) {
     return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
   }
 
-  /// Calculate water balance and determine days remaining
-  static Map<String, dynamic> _calculateWaterBalance({
+  // Calculate water balance and determine days remaining
+  static Map<String, dynamic> calculateWaterBalance({
     required int currentInventory,
     required double dailyUsage,
     required Map<String, double> monthlyIntake,
@@ -380,7 +384,7 @@ class ResultsCalculator {
     }
 
     // Calculate projected inventory levels for chart
-    final projectedData = _calculateProjectedLevels(
+    final projectedData = calculateProjectedLevels(
       currentInventory: currentInventory,
       dailyUsage: dailyUsage,
       monthlyIntake: monthlyIntake,
@@ -400,8 +404,8 @@ class ResultsCalculator {
     };
   }
 
-  /// Calculate projected water levels for charting
-  static List<Map<String, dynamic>> _calculateProjectedLevels({
+  // Calculate projected water levels for charting
+  static List<Map<String, dynamic>> calculateProjectedLevels({
     required int currentInventory,
     required double dailyUsage,
     required Map<String, double> monthlyIntake,
@@ -458,7 +462,7 @@ class ResultsCalculator {
     return projectedData;
   }
 
-  /// Get total tank capacity
+  // Get total tank capacity
   static Future<int> getTotalTankCapacity() async {
     try {
       final tankData = await _dataPersistService.loadTankData();
@@ -476,7 +480,7 @@ class ResultsCalculator {
     }
   }
 
-  /// Get tank usage summary
+  // Get tank usage summary
   static Future<Map<String, dynamic>> getTankSummary() async {
     try {
       final tankData = await _dataPersistService.loadTankData();
@@ -512,7 +516,7 @@ class ResultsCalculator {
     }
   }
 
-  /// Get available rainfall scenarios based on historical data
+  // Get available rainfall scenarios based on historical data
   static Future<List<String>> getAvailableScenarios() async {
     try {
       final rainfallStats = await _getHistoricalRainfallStats();

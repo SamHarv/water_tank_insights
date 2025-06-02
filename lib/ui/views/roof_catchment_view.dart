@@ -189,35 +189,6 @@ class _RoofCatchmentViewState extends State<RoofCatchmentView> {
                     style: inputFieldStyle,
                   ),
                 ),
-                // ConstrainedWidthWidget(
-                //   child: SegmentedButton(
-                //     selectedIcon: Icon(Icons.check, color: black),
-                //     style: segButtonStyle,
-                //     segments: [
-                //       ButtonSegment(
-                //         value: true,
-                //         label: Padding(
-                //           padding: const EdgeInsets.all(16),
-                //           child: Text("Yes"),
-                //         ),
-                //       ),
-                //       ButtonSegment(
-                //         value: false,
-                //         label: Padding(
-                //           padding: const EdgeInsets.all(16),
-                //           child: Text("No"),
-                //         ),
-                //       ),
-                //     ],
-                //     selected: {knowRoofCatchment},
-                //     onSelectionChanged: (selected) {
-                //       setState(() {
-                //         knowRoofCatchment = selected.first;
-                //       });
-                //       _saveData(); // Auto-save when selection changes
-                //     },
-                //   ),
-                // ),
 
                 // Input catchment area m2
                 ConstrainedWidthWidget(

@@ -108,11 +108,13 @@ class _LocationViewState extends State<LocationView> {
         }
         isLoadingChart = false;
       });
+      print("Success!");
     } catch (e) {
       setState(() {
         chartError = 'Failed to load rainfall data: ${e.toString()}';
         isLoadingChart = false;
       });
+      throw "Could not retrieve data for $selectedPostcode!";
     }
   }
 
@@ -248,8 +250,14 @@ class _LocationViewState extends State<LocationView> {
                         });
                         // Save data
                         _saveData();
-                        // Load data after postcode is selected
-                        _loadChartData();
+                        try {
+                          // Load data after postcode is selected
+                          _loadChartData();
+                        } catch (e) {
+                          _showAlertDialog(
+                            "Failed to load rainfall data: ${e.toString()}",
+                          );
+                        }
                       },
                     ),
                   ),

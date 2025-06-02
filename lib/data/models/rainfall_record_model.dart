@@ -64,7 +64,7 @@ class RainfallRecord {
     for (int day = 1; day <= daysInMonth; day++) {
       final date = DateTime(year, month, day);
 
-      // TODO: Get real temps. Seasonal temperature estimates
+      // TODO: Get real temps
       final temperature = _getSeasonalTemperature(month);
 
       // Add to daily data
